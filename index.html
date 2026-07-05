@@ -135,24 +135,35 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
 .seg button{flex:1;background:none;color:var(--muted);padding:9px;border-radius:9px;font-weight:600;font-size:14px}
 .seg button.sel{background:var(--accent);color:#04140a}
 
-/* onboarding tutorial */
-.onboard{position:fixed;inset:0;background:var(--bg);z-index:200;display:none;flex-direction:column;padding:calc(24px + env(safe-area-inset-top)) 0 calc(20px + env(safe-area-inset-bottom))}
+/* onboarding tutorial — floating card */
+.onboard{position:fixed;inset:0;z-index:200;display:none;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(130% 80% at 50% -5%, rgba(34,197,94,.10) 0, transparent 55%), rgba(7,10,11,.74);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);padding:24px}
 .onboard.open{display:flex}
-.ob-track{flex:1;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
-.ob-track::-webkit-scrollbar{display:none}
-.ob-slide{min-width:100%;scroll-snap-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:10px 34px;gap:16px}
-.ob-ic{font-size:82px;line-height:1;filter:drop-shadow(0 10px 26px rgba(34,197,94,.25))}
-.ob-slide h2{font-size:25px;font-weight:800;letter-spacing:-.5px}
-.ob-slide p{color:var(--muted);font-size:16px;line-height:1.55;max-width:340px;margin:0}
-.ob-slide p b{color:var(--txt);font-weight:700}
-.soon{font-size:11px;background:var(--card2);color:var(--accent);border:1px solid var(--line);padding:3px 9px;border-radius:99px;vertical-align:middle;font-weight:700;white-space:nowrap}
-.ob-note{background:var(--card2);border-left:3px solid var(--carb);padding:11px 13px;border-radius:8px;font-size:13.5px;color:var(--muted);max-width:340px;text-align:left;line-height:1.45}
-.ob-dots{display:flex;gap:8px;justify-content:center;padding:18px 0}
-.ob-dots i{width:8px;height:8px;border-radius:99px;background:var(--line);transition:.3s}
+.ob-card{position:relative;width:min(360px,88vw);background:linear-gradient(180deg,#1d292e,#141c20);
+  border:1px solid var(--line);border-radius:30px;padding:40px 26px 32px;text-align:center;cursor:pointer;user-select:none;overflow:hidden;
+  box-shadow:0 34px 70px -22px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.05)}
+.ob-card::before{content:'';position:absolute;top:-38%;left:50%;transform:translateX(-50%);width:240px;height:240px;
+  background:radial-gradient(circle,var(--accent) 0,transparent 68%);opacity:.16;pointer-events:none}
+.ob-badge{position:relative;width:98px;height:98px;margin:0 auto 22px;border-radius:28px;display:flex;align-items:center;justify-content:center;
+  font-size:52px;background:rgba(255,255,255,.045);border:1px solid var(--line);box-shadow:0 14px 34px -10px rgba(34,197,94,.35)}
+.ob-card h2{font-size:23px;font-weight:800;letter-spacing:-.6px;margin-bottom:12px}
+.ob-card p{color:var(--muted);font-size:15.5px;line-height:1.55;margin:0}
+.ob-card p b{color:var(--txt);font-weight:700}
+.soon{font-size:11px;background:rgba(34,197,94,.12);color:var(--accent);border:1px solid rgba(34,197,94,.3);padding:3px 9px;border-radius:99px;vertical-align:middle;font-weight:700;white-space:nowrap}
+.ob-note{margin-top:16px;background:rgba(245,158,11,.09);border:1px solid rgba(245,158,11,.28);color:#e8cfa6;padding:11px 13px;border-radius:13px;font-size:13px;line-height:1.45;text-align:left}
+.ob-note b{color:#fff}
+.ob-card.out{animation:obOut .2s ease forwards}
+.ob-card.in{animation:obIn .32s cubic-bezier(.16,.84,.3,1)}
+@keyframes obOut{to{opacity:0;transform:translateX(-38px) scale(.95)}}
+@keyframes obIn{from{opacity:0;transform:translateX(40px) scale(.95)}to{opacity:1;transform:none}}
+.ob-dots{display:flex;gap:8px;justify-content:center;margin:24px 0 20px}
+.ob-dots i{width:7px;height:7px;border-radius:99px;background:rgba(255,255,255,.18);transition:.35s}
 .ob-dots i.on{background:var(--accent);width:22px}
-.ob-actions{display:flex;align-items:center;justify-content:space-between;padding:0 24px;gap:16px}
-.ob-skip{background:none;color:var(--muted);font-size:15px;font-weight:600;padding:12px 4px}
-.ob-actions .btn{width:auto;padding:14px 26px;font-size:16px}
+.ob-actions{display:flex;align-items:center;gap:14px;width:min(360px,88vw)}
+.ob-skip{background:none;color:var(--muted);font-size:15px;font-weight:600;padding:13px 8px}
+.ob-actions .btn{flex:1;width:auto}
+.ob-tap{margin-top:14px;color:var(--muted);font-size:12px;opacity:.6}
 </style>
 </head>
 <body>
@@ -293,33 +304,11 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
 
 <!-- ONBOARDING -->
 <div class="onboard" id="onboard">
-  <div class="ob-track" id="obTrack">
-    <div class="ob-slide">
-      <div class="ob-ic">🍽️</div>
-      <h2>Bienvenido a NutriApp</h2>
-      <p>Lleva el registro de lo que comes <b>sin complicarte</b>. Pensada para tus platos de siempre: los registras en 2 toques.</p>
-    </div>
-    <div class="ob-slide">
-      <div class="ob-ic">📷</div>
-      <h2>Escanea el código de barras</h2>
-      <p>Es la forma <b>más fiable</b>: los valores nutricionales vienen del fabricante (Open Food Facts). Perfecto para envases y marcas.</p>
-    </div>
-    <div class="ob-slide">
-      <div class="ob-ic">🍲</div>
-      <h2>Foto al plato <span class="soon">próximamente</span></h2>
-      <p>Podrás identificar un plato con una simple foto.</p>
-      <div class="ob-note">⚠️ La foto es <b>rápida</b>, pero la estimación de calorías es <b>aproximada</b> (±20-40%). Revísala y guárdala como plato: la próxima vez ya será exacta y de un toque.</div>
-    </div>
-    <div class="ob-slide">
-      <div class="ob-ic">📊</div>
-      <h2>Guarda y mejora</h2>
-      <p>Guarda tus platos habituales y consulta tu balance <b>diario y semanal</b>: proteínas, hidratos, grasas y calorías, con comparativa vs. la semana anterior.</p>
-    </div>
-  </div>
+  <div class="ob-card" id="obCard" onclick="obNext()"></div>
   <div class="ob-dots" id="obDots"></div>
   <div class="ob-actions">
     <button class="ob-skip" onclick="closeOnboard()">Saltar</button>
-    <button class="btn small" id="obNext" onclick="obNext()">Siguiente →</button>
+    <button class="btn" id="obBtn" onclick="obNext()">Siguiente →</button>
   </div>
 </div>
 
@@ -623,20 +612,35 @@ function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
 
 /* ---------- Onboarding ---------- */
-const OB_SLIDES=4;
-function obCurrent(){const t=document.getElementById('obTrack');return Math.round(t.scrollLeft/t.clientWidth);}
-function obSync(){const i=obCurrent();
-  document.querySelectorAll('#obDots i').forEach((d,k)=>d.classList.toggle('on',k===i));
-  document.getElementById('obNext').textContent=i>=OB_SLIDES-1?'Empezar 🚀':'Siguiente →';}
-function obNext(){const t=document.getElementById('obTrack');const i=obCurrent();
-  if(i>=OB_SLIDES-1){closeOnboard();return;}
-  t.scrollTo({left:(i+1)*t.clientWidth,behavior:'smooth'});}
+const OB=[
+  {ic:'🍽️',t:'Bienvenido a NutriApp',h:'Lleva el registro de lo que comes <b>sin complicarte</b>. Pensada para tus platos de siempre: los registras en 2 toques.'},
+  {ic:'📷',t:'Escanea el código de barras',h:'Es la forma <b>más fiable</b>: los valores nutricionales vienen del fabricante (Open Food Facts). Perfecto para envases y marcas.'},
+  {ic:'🍲',t:'Foto al plato <span class="soon">próximamente</span>',h:'Podrás identificar un plato con una simple foto.',note:'⚠️ La foto es <b>rápida</b>, pero la estimación de calorías es <b>aproximada</b> (±20-40%). Revísala y guárdala como plato: la próxima vez ya será exacta y de un toque.'},
+  {ic:'📊',t:'Guarda y mejora',h:'Guarda tus platos habituales y consulta tu balance <b>diario y semanal</b>: proteínas, hidratos, grasas y calorías, con comparativa vs. la semana anterior.'},
+];
+let obI=0;
+function obRender(){
+  const s=OB[obI];
+  document.getElementById('obCard').innerHTML=
+    `<div class="ob-badge">${s.ic}</div><h2>${s.t}</h2><p>${s.h}</p>`+
+    (s.note?`<div class="ob-note">${s.note}</div>`:'')+
+    `<div class="ob-tap">Toca para continuar</div>`;
+  document.getElementById('obDots').innerHTML=OB.map((_,i)=>`<i class="${i===obI?'on':''}"></i>`).join('');
+  document.getElementById('obBtn').textContent=obI>=OB.length-1?'Empezar 🚀':'Siguiente →';
+}
+function obNext(){
+  if(obI>=OB.length-1){closeOnboard();return;}
+  const c=document.getElementById('obCard');
+  c.classList.add('out');
+  setTimeout(()=>{obI++;obRender();c.classList.remove('out');c.classList.add('in');
+    setTimeout(()=>c.classList.remove('in'),320);},200);
+}
 function openOnboard(){
-  document.getElementById('obDots').innerHTML=Array.from({length:OB_SLIDES},(_,i)=>`<i class="${i===0?'on':''}"></i>`).join('');
+  obI=0;obRender();
   document.getElementById('onboard').classList.add('open');
-  const t=document.getElementById('obTrack');t.scrollLeft=0;obSync();}
+  const c=document.getElementById('obCard');c.classList.add('in');setTimeout(()=>c.classList.remove('in'),320);
+}
 function closeOnboard(){document.getElementById('onboard').classList.remove('open');localStorage.setItem('na_onboarded','1');}
-document.getElementById('obTrack').addEventListener('scroll',()=>{clearTimeout(window._obt);window._obt=setTimeout(obSync,60);});
 
 /* ---------- init ---------- */
 renderHoy();
