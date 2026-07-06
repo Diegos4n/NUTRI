@@ -70,9 +70,10 @@ main{padding:4px 16px 20px}
 .meal .info .name{font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .meal .info .macros{color:var(--muted);font-size:12px;margin-top:2px}
 .meal .kc{font-weight:700;font-size:15px;white-space:nowrap}
-.meal .del{background:none;color:var(--muted);font-size:20px;padding:4px 6px;margin-left:2px}
+.meal .del{background:none;color:var(--muted);padding:4px 6px;margin-left:2px;display:flex;align-items:center}
+.meal .del svg{width:19px;height:19px}
 .empty{color:var(--muted);text-align:center;padding:26px 10px;font-size:14px}
-.empty .big{font-size:34px;display:block;margin-bottom:8px;opacity:.7}
+.empty .big{width:42px;height:42px;display:block;margin:0 auto 10px;color:var(--line);opacity:.9;stroke:#c9bda3}
 
 /* buttons */
 .btn{background:var(--accent);color:var(--ink);font-weight:700;font-size:16px;padding:15px;border-radius:15px;width:100%;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 8px 18px -8px rgba(31,157,85,.55)}
@@ -144,7 +145,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
 
 /* onboarding tutorial — floating card */
 .onboard{position:fixed;inset:0;z-index:200;display:none;flex-direction:column;align-items:center;justify-content:center;
-  background:radial-gradient(130% 80% at 50% -5%, rgba(31,157,85,.16) 0, transparent 55%), rgba(44,33,18,.5);
+  background:radial-gradient(130% 80% at 50% -5%, rgba(31,157,85,.22) 0, transparent 55%), rgba(26,19,8,.72);
   backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:24px}
 .onboard.open{display:flex}
 .ob-card{position:relative;width:min(360px,88vw);background:linear-gradient(180deg,#fffdf8,#fbf5ea);
@@ -152,23 +153,24 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
   box-shadow:0 34px 70px -22px rgba(60,45,20,.5), inset 0 1px 0 rgba(255,255,255,.6)}
 .ob-card::before{content:'';position:absolute;top:-38%;left:50%;transform:translateX(-50%);width:240px;height:240px;
   background:radial-gradient(circle,var(--accent) 0,transparent 68%);opacity:.12;pointer-events:none}
-.ob-badge{position:relative;width:98px;height:98px;margin:0 auto 22px;border-radius:28px;display:flex;align-items:center;justify-content:center;
-  font-size:52px;background:var(--card2);border:1px solid var(--line);box-shadow:0 14px 34px -12px rgba(31,157,85,.4)}
-.ob-card h2{font-size:23px;font-weight:800;letter-spacing:-.6px;margin-bottom:12px}
-.ob-card p{color:var(--muted);font-size:15.5px;line-height:1.55;margin:0}
+.ob-badge{position:relative;width:96px;height:96px;margin:0 auto 22px;border-radius:28px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,rgba(31,157,85,.14),rgba(31,157,85,.05));border:1px solid rgba(31,157,85,.22);box-shadow:0 14px 34px -12px rgba(31,157,85,.4)}
+.ob-badge svg{width:48px;height:48px;fill:none;stroke:var(--accent);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.ob-card h2{font-size:23px;font-weight:800;letter-spacing:-.6px;margin-bottom:12px;color:var(--txt)}
+.ob-card p{color:#6f6656;font-size:15.5px;line-height:1.55;margin:0}
 .ob-card p b{color:var(--txt);font-weight:700}
-.soon{font-size:11px;background:rgba(34,197,94,.12);color:var(--accent);border:1px solid rgba(34,197,94,.3);padding:3px 9px;border-radius:99px;vertical-align:middle;font-weight:700;white-space:nowrap}
-.ob-note{margin-top:16px;background:rgba(245,158,11,.09);border:1px solid rgba(245,158,11,.28);color:#e8cfa6;padding:11px 13px;border-radius:13px;font-size:13px;line-height:1.45;text-align:left}
-.ob-note b{color:#fff}
+.soon{font-size:11px;background:rgba(31,157,85,.14);color:var(--accent-d);border:1px solid rgba(31,157,85,.3);padding:3px 9px;border-radius:99px;vertical-align:middle;font-weight:700;white-space:nowrap}
+.ob-note{margin-top:16px;background:rgba(239,159,40,.14);border:1px solid rgba(239,159,40,.4);color:#875612;padding:11px 13px;border-radius:13px;font-size:13px;line-height:1.45;text-align:left}
+.ob-note b{color:#5f3a02}
 .ob-card.out{animation:obOut .2s ease forwards}
 .ob-card.in{animation:obIn .32s cubic-bezier(.16,.84,.3,1)}
 @keyframes obOut{to{opacity:0;transform:translateX(-38px) scale(.95)}}
 @keyframes obIn{from{opacity:0;transform:translateX(40px) scale(.95)}to{opacity:1;transform:none}}
 .ob-dots{display:flex;gap:8px;justify-content:center;margin:24px 0 20px}
-.ob-dots i{width:7px;height:7px;border-radius:99px;background:rgba(255,255,255,.18);transition:.35s}
+.ob-dots i{width:7px;height:7px;border-radius:99px;background:rgba(255,255,255,.35);transition:.35s}
 .ob-dots i.on{background:var(--accent);width:22px}
 .ob-actions{display:flex;align-items:center;gap:14px;width:min(360px,88vw)}
-.ob-skip{background:none;color:var(--muted);font-size:15px;font-weight:600;padding:13px 8px}
+.ob-skip{background:none;color:rgba(255,255,255,.8);font-size:15px;font-weight:600;padding:13px 8px}
 .ob-actions .btn{flex:1;width:auto}
 .ob-tap{margin-top:14px;color:var(--muted);font-size:12px;opacity:.6}
 
@@ -250,7 +252,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     <!-- ===== MIS PLATOS ===== -->
     <section class="view" id="view-platos">
       <div class="card" style="margin-bottom:12px">
-        <input id="presetSearch" placeholder="🔍 Buscar plato…" oninput="renderPresets()">
+        <input id="presetSearch" placeholder="Buscar plato…" oninput="renderPresets()">
       </div>
       <div id="presetList"></div>
       <button class="btn mt" onclick="openPresetForm()">＋ Nuevo plato</button>
@@ -320,7 +322,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
 <div class="modal-bg" id="modalPicker">
   <div class="modal">
     <h3>Añadir comida<button class="x" onclick="closeModal('modalPicker')">✕</button></h3>
-    <input id="pickerSearch" placeholder="🔍 Buscar…" oninput="renderPicker()" style="margin-bottom:12px">
+    <input id="pickerSearch" placeholder="Buscar…" oninput="renderPicker()" style="margin-bottom:12px">
     <div id="pickerList"></div>
     <button class="btn sec mt" onclick="closeModal('modalPicker');openPresetForm()">＋ Crear plato nuevo</button>
   </div>
@@ -427,14 +429,14 @@ function renderHoy(){
   renderQuick();
 
   const list=document.getElementById('mealList');
-  if(m.length===0){list.innerHTML='<div class="empty"><span class="big">🍂</span>Aún no has registrado nada hoy.<br>Pulsa «Añadir comida».</div>';return;}
+  if(m.length===0){list.innerHTML='<div class="empty"><svg class="big" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/></svg>Aún no has registrado nada hoy.<br>Pulsa «Añadir comida».</div>';return;}
   list.innerHTML=m.map(e=>`
     <div class="meal">
       <div class="emoji">${e.emoji||'🍽️'}</div>
       <div class="info"><div class="name">${esc(e.name)}</div>
         <div class="macros">${r(e.carb)}g H · ${r(e.prot)}g P · ${r(e.fat)}g G${e.qty?' · '+e.qty:''}</div></div>
       <div class="kc">${r(e.kcal)}</div>
-      <button class="del" onclick="delEntry('${e.id}')">🗑</button>
+      <button class="del" onclick="delEntry('${e.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M6.5 7l.8 12a1.5 1.5 0 0 0 1.5 1.4h6.4a1.5 1.5 0 0 0 1.5-1.4l.8-12"/></svg></button>
     </div>`).join('');
 }
 function delEntry(id){DB.log=DB.log.filter(e=>e.id!==id);save();renderHoy();}
@@ -703,11 +705,17 @@ function closeModal(id){document.getElementById(id).classList.remove('open');}
 document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
 
 /* ---------- Onboarding ---------- */
+const OB_SVG={
+  plate:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><circle cx="12" cy="12" r="3.4"/></svg>',
+  barcode:'<svg viewBox="0 0 24 24"><path d="M4 5v14M7.5 5v14M10.5 5v14M13.5 5v14M16.5 5v11M20 5v14"/></svg>',
+  camera:'<svg viewBox="0 0 24 24"><path d="M3 8.5A2 2 0 0 1 5 6.5h1.6l1-1.6h4.8l1 1.6H19a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="12.5" r="3.3"/></svg>',
+  chart:'<svg viewBox="0 0 24 24"><path d="M5 20V4M5 20h15M9 20v-6M13.5 20V9M18 20v-8"/></svg>',
+};
 const OB=[
-  {ic:'🍽️',t:'Bienvenido a NutriApp',h:'Lleva el registro de lo que comes <b>sin complicarte</b>. Pensada para tus platos de siempre: los registras en 2 toques.'},
-  {ic:'📷',t:'Escanea el código de barras',h:'Es la forma <b>más fiable</b>: los valores nutricionales vienen del fabricante (Open Food Facts). Perfecto para envases y marcas.'},
-  {ic:'🍲',t:'Foto al plato <span class="soon">próximamente</span>',h:'Podrás identificar un plato con una simple foto.',note:'⚠️ La foto es <b>rápida</b>, pero la estimación de calorías es <b>aproximada</b> (±20-40%). Revísala y guárdala como plato: la próxima vez ya será exacta y de un toque.'},
-  {ic:'📊',t:'Guarda y mejora',h:'Guarda tus platos habituales y consulta tu balance <b>diario y semanal</b>: proteínas, hidratos, grasas y calorías, con comparativa vs. la semana anterior.'},
+  {ic:OB_SVG.plate,t:'Bienvenido a NutriApp',h:'Lleva el registro de lo que comes <b>sin complicarte</b>. Pensada para tus platos de siempre: los registras en 2 toques.'},
+  {ic:OB_SVG.barcode,t:'Escanea el código de barras',h:'Es la forma <b>más fiable</b>: los valores nutricionales vienen del fabricante (Open Food Facts). Perfecto para envases y marcas.'},
+  {ic:OB_SVG.camera,t:'Foto al plato <span class="soon">próximamente</span>',h:'Podrás identificar un plato con una simple foto.',note:'La foto es <b>rápida</b>, pero la estimación de calorías es <b>aproximada</b> (±20-40%). Revísala y guárdala como plato: la próxima vez ya será exacta y de un toque.'},
+  {ic:OB_SVG.chart,t:'Guarda y mejora',h:'Guarda tus platos habituales y consulta tu balance <b>diario y semanal</b>: proteínas, hidratos, grasas y calorías, con comparativa vs. la semana anterior.'},
 ];
 let obI=0;
 function obRender(){
@@ -717,7 +725,7 @@ function obRender(){
     (s.note?`<div class="ob-note">${s.note}</div>`:'')+
     `<div class="ob-tap">Toca para continuar</div>`;
   document.getElementById('obDots').innerHTML=OB.map((_,i)=>`<i class="${i===obI?'on':''}"></i>`).join('');
-  document.getElementById('obBtn').textContent=obI>=OB.length-1?'Empezar 🚀':'Siguiente →';
+  document.getElementById('obBtn').textContent=obI>=OB.length-1?'Empezar':'Siguiente →';
 }
 function obNext(){
   if(obI>=OB.length-1){closeOnboard();return;}
@@ -731,11 +739,11 @@ function openOnboard(){
   document.getElementById('onboard').classList.add('open');
   const c=document.getElementById('obCard');c.classList.add('in');setTimeout(()=>c.classList.remove('in'),320);
 }
-function closeOnboard(){document.getElementById('onboard').classList.remove('open');localStorage.setItem('na_onboarded','1');}
+function closeOnboard(){document.getElementById('onboard').classList.remove('open');localStorage.setItem('na_onboarded_v2','1');}
 
 /* ---------- init ---------- */
 renderHoy();
-if(!localStorage.getItem('na_onboarded')) openOnboard();
+if(!localStorage.getItem('na_onboarded_v2')) openOnboard();
 </script>
 </body>
 </html>
