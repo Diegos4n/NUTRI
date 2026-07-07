@@ -92,7 +92,7 @@ main{padding:4px 16px 20px}
 .preset .edit{background:none;color:var(--muted);font-size:17px;padding:6px}
 
 /* nav */
-nav{position:fixed;bottom:0;left:0;right:0;background:rgba(255,253,248,.9);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -6px 20px -12px rgba(90,70,30,.3)}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fffdf8;border-top:1px solid var(--line);display:flex;padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -6px 20px -12px rgba(90,70,30,.3)}
 nav .tab{flex:1;background:none;color:var(--muted);padding:11px 0 9px;display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;font-weight:600;transition:color .2s}
 nav .tab .ic{width:23px;height:23px;stroke-width:2;transition:transform .2s}
 nav .tab.active{color:var(--accent)}
@@ -143,34 +143,32 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
 .seg button{flex:1;background:none;color:var(--muted);padding:9px;border-radius:9px;font-weight:600;font-size:14px}
 .seg button.sel{background:var(--accent);color:var(--ink)}
 
-/* onboarding tutorial — floating card */
+/* onboarding tutorial — hero card */
 .onboard{position:fixed;inset:0;z-index:200;display:none;flex-direction:column;align-items:center;justify-content:center;
-  background:radial-gradient(130% 80% at 50% -5%, rgba(31,157,85,.22) 0, transparent 55%), rgba(26,19,8,.72);
-  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:24px}
+  background:radial-gradient(130% 75% at 50% 0%, rgba(31,157,85,.28) 0, transparent 55%), rgba(22,16,6,.8);padding:24px}
 .onboard.open{display:flex}
-.ob-card{position:relative;width:min(360px,88vw);background:linear-gradient(180deg,#fffdf8,#fbf5ea);
-  border:1px solid var(--line);border-radius:30px;padding:40px 26px 32px;text-align:center;cursor:pointer;user-select:none;overflow:hidden;
-  box-shadow:0 34px 70px -22px rgba(60,45,20,.5), inset 0 1px 0 rgba(255,255,255,.6)}
-.ob-card::before{content:'';position:absolute;top:-38%;left:50%;transform:translateX(-50%);width:240px;height:240px;
-  background:radial-gradient(circle,var(--accent) 0,transparent 68%);opacity:.12;pointer-events:none}
-.ob-badge{position:relative;width:96px;height:96px;margin:0 auto 22px;border-radius:28px;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(160deg,rgba(31,157,85,.14),rgba(31,157,85,.05));border:1px solid rgba(31,157,85,.22);box-shadow:0 14px 34px -12px rgba(31,157,85,.4)}
-.ob-badge svg{width:48px;height:48px;fill:none;stroke:var(--accent);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.ob-card h2{font-size:23px;font-weight:800;letter-spacing:-.6px;margin-bottom:12px;color:var(--txt)}
-.ob-card p{color:#6f6656;font-size:15.5px;line-height:1.55;margin:0}
-.ob-card p b{color:var(--txt);font-weight:700}
-.soon{font-size:11px;background:rgba(31,157,85,.14);color:var(--accent-d);border:1px solid rgba(31,157,85,.3);padding:3px 9px;border-radius:99px;vertical-align:middle;font-weight:700;white-space:nowrap}
-.ob-note{margin-top:16px;background:rgba(239,159,40,.14);border:1px solid rgba(239,159,40,.4);color:#875612;padding:11px 13px;border-radius:13px;font-size:13px;line-height:1.45;text-align:left}
-.ob-note b{color:#5f3a02}
+.ob-card{position:relative;width:min(358px,88vw);background:var(--card);border:1px solid var(--line);border-radius:26px;
+  overflow:hidden;cursor:pointer;user-select:none;box-shadow:0 36px 72px -24px rgba(30,20,5,.7)}
+.ob-hero{position:relative;height:130px;background:linear-gradient(135deg,#1b8f4c 0%,#31c06d 52%,#e3a72c 100%);display:flex;align-items:center;justify-content:center}
+.ob-hero::after{content:'';position:absolute;inset:0;background:radial-gradient(120% 120% at 50% 135%, rgba(255,255,255,.3),transparent 55%)}
+.ob-badge{position:relative;z-index:1;width:80px;height:80px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 12px 26px -8px rgba(0,0,0,.4)}
+.ob-badge svg{width:40px;height:40px;fill:none;stroke:var(--accent-d);stroke-width:1.85;stroke-linecap:round;stroke-linejoin:round}
+.ob-body{padding:24px 24px 26px;text-align:center}
+.ob-body h2{font-size:22px;font-weight:800;letter-spacing:-.5px;margin-bottom:10px;color:var(--txt)}
+.ob-body p{color:#6b6252;font-size:15px;line-height:1.55;margin:0}
+.ob-body p b{color:var(--txt);font-weight:700}
+.soon{display:inline-block;font-size:10.5px;background:var(--accent);color:#fff;padding:3px 9px;border-radius:99px;vertical-align:middle;font-weight:800;letter-spacing:.3px;text-transform:uppercase;white-space:nowrap}
+.ob-note{margin-top:16px;background:#fdf0d9;border:1px solid #f0cf94;color:#7a4e10;padding:12px 14px;border-radius:14px;font-size:13px;line-height:1.5;text-align:left}
+.ob-note b{color:#5a3700}
 .ob-card.out{animation:obOut .2s ease forwards}
-.ob-card.in{animation:obIn .32s cubic-bezier(.16,.84,.3,1)}
-@keyframes obOut{to{opacity:0;transform:translateX(-38px) scale(.95)}}
-@keyframes obIn{from{opacity:0;transform:translateX(40px) scale(.95)}to{opacity:1;transform:none}}
-.ob-dots{display:flex;gap:8px;justify-content:center;margin:24px 0 20px}
-.ob-dots i{width:7px;height:7px;border-radius:99px;background:rgba(255,255,255,.35);transition:.35s}
-.ob-dots i.on{background:var(--accent);width:22px}
-.ob-actions{display:flex;align-items:center;gap:14px;width:min(360px,88vw)}
-.ob-skip{background:none;color:rgba(255,255,255,.8);font-size:15px;font-weight:600;padding:13px 8px}
+.ob-card.in{animation:obIn .34s cubic-bezier(.16,.84,.3,1)}
+@keyframes obOut{to{opacity:0;transform:translateX(-38px) scale(.96)}}
+@keyframes obIn{from{opacity:0;transform:translateX(40px) scale(.96)}to{opacity:1;transform:none}}
+.ob-dots{display:flex;gap:8px;justify-content:center;margin:26px 0 20px}
+.ob-dots i{width:7px;height:7px;border-radius:99px;background:rgba(255,255,255,.4);transition:.35s}
+.ob-dots i.on{background:#fff;width:22px}
+.ob-actions{display:flex;align-items:center;gap:14px;width:min(358px,88vw)}
+.ob-skip{background:none;color:rgba(255,255,255,.85);font-size:15px;font-weight:600;padding:13px 8px}
 .ob-actions .btn{flex:1;width:auto}
 .ob-tap{margin-top:14px;color:var(--muted);font-size:12px;opacity:.6}
 
@@ -721,9 +719,10 @@ let obI=0;
 function obRender(){
   const s=OB[obI];
   document.getElementById('obCard').innerHTML=
-    `<div class="ob-badge">${s.ic}</div><h2>${s.t}</h2><p>${s.h}</p>`+
+    `<div class="ob-hero"><div class="ob-badge">${s.ic}</div></div>`+
+    `<div class="ob-body"><h2>${s.t}</h2><p>${s.h}</p>`+
     (s.note?`<div class="ob-note">${s.note}</div>`:'')+
-    `<div class="ob-tap">Toca para continuar</div>`;
+    `<div class="ob-tap">Toca para continuar</div></div>`;
   document.getElementById('obDots').innerHTML=OB.map((_,i)=>`<i class="${i===obI?'on':''}"></i>`).join('');
   document.getElementById('obBtn').textContent=obI>=OB.length-1?'Empezar':'Siguiente →';
 }
