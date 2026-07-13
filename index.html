@@ -184,7 +184,8 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
 .ring-center .goal{font-size:13px;color:var(--muted);margin-top:5px}
 .kcal-sub{color:var(--muted);font-size:13.5px;margin-top:10px;font-weight:600}
 .macros-mini{display:flex;gap:12px;width:100%;margin-top:18px}
-.macros-mini .mini{flex:1;text-align:center}
+.macros-mini .mini{flex:1;text-align:center;cursor:pointer}
+.macros-mini .mini .ml{font-size:11px}
 .macros-mini .mini .mbar{height:7px;background:var(--card2);border-radius:99px;overflow:hidden;margin-bottom:7px}
 .macros-mini .mini .mbar i{display:block;height:100%;border-radius:99px;transition:width .7s cubic-bezier(.34,1.1,.5,1)}
 .macros-mini .mini .ml{font-size:11px;color:var(--muted);display:block}
@@ -199,6 +200,36 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
 .quick-chip .qk{font-size:10.5px;color:var(--muted);font-weight:600}
 .quick-chip:active{transform:scale(.94);border-color:var(--accent)}
 .quick-chip .qadd{position:absolute}
+
+/* quality analyzer + nutrient info */
+.q-head{display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.q-score{width:66px;height:66px;border-radius:50%;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:24px;font-weight:800;line-height:1;flex-shrink:0;box-shadow:0 8px 20px -8px rgba(0,0,0,.35)}
+.q-score small{font-size:10px;font-weight:600;opacity:.85;margin-top:1px}
+.q-cat{font-size:19px;font-weight:800;letter-spacing:-.3px}
+.q-name{font-size:13px;color:var(--muted);margin-top:2px}
+.q-rows{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:6px}
+.q-row{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted)}
+.q-row b{color:var(--txt);font-weight:700;font-size:14px}
+.q-sub{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;font-weight:700;margin:16px 0 8px}
+.q-adds{display:flex;flex-direction:column;gap:7px}
+.add-chip{display:flex;align-items:center;gap:8px;padding:9px 11px;border-radius:11px;font-size:13px;border:1px solid}
+.add-chip b{font-weight:800}
+.add-chip span{margin-left:auto;font-size:11px;font-weight:700}
+.add-chip.alto{background:rgba(224,87,74,.1);border-color:rgba(224,87,74,.35);color:#a83224}
+.add-chip.alto span{color:#e0574a}
+.add-chip.moderado{background:rgba(239,159,40,.12);border-color:rgba(239,159,40,.4);color:#8a5b16}
+.add-chip.moderado span{color:#d98a1f}
+.add-chip.limitado{background:var(--card2);border-color:var(--line);color:var(--muted)}
+.add-ok{background:rgba(31,157,85,.1);border:1px solid rgba(31,157,85,.3);color:var(--accent-d);padding:11px;border-radius:11px;font-size:13px;font-weight:600;text-align:center}
+.q-levels{display:flex;gap:8px;flex-wrap:wrap}
+.q-levels .lvl{flex:1;min-width:calc(50% - 4px);background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--muted)}
+.q-levels .lvl b{font-size:14px}
+.q-macros{margin-top:16px;background:var(--card2);border-radius:12px;padding:12px;font-size:13px;color:var(--muted);text-align:center}
+.q-macros b{color:var(--txt)}
+.q-disc{margin-top:14px;font-size:11.5px;color:var(--muted);text-align:center;line-height:1.4;opacity:.85}
+.info-dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:8px;vertical-align:middle}
+.info-p{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:13px 15px;font-size:14px;line-height:1.5;color:var(--txt);margin-bottom:10px}
+.info-p b{color:var(--accent-d);font-weight:700}
 </style>
 </head>
 <body>
@@ -231,9 +262,9 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
         </div>
         <div class="kcal-sub" id="kcSub">Te quedan 2000 kcal</div>
         <div class="macros-mini">
-          <div class="mini"><div class="mbar"><i id="cBar" style="width:0;background:var(--carb)"></i></div><span class="ml">Hidratos</span><span class="mv" id="mCarb">0g</span></div>
-          <div class="mini"><div class="mbar"><i id="pBar" style="width:0;background:var(--prot)"></i></div><span class="ml">Proteína</span><span class="mv" id="mProt">0g</span></div>
-          <div class="mini"><div class="mbar"><i id="fBar" style="width:0;background:var(--fat)"></i></div><span class="ml">Grasas</span><span class="mv" id="mFat">0g</span></div>
+          <div class="mini" onclick="openNutrientInfo('carb')"><div class="mbar"><i id="cBar" style="width:0;background:var(--carb)"></i></div><span class="ml">Hidratos ⓘ</span><span class="mv" id="mCarb">0g</span></div>
+          <div class="mini" onclick="openNutrientInfo('prot')"><div class="mbar"><i id="pBar" style="width:0;background:var(--prot)"></i></div><span class="ml">Proteína ⓘ</span><span class="mv" id="mProt">0g</span></div>
+          <div class="mini" onclick="openNutrientInfo('grasas')"><div class="mbar"><i id="fBar" style="width:0;background:var(--fat)"></i></div><span class="ml">Grasas ⓘ</span><span class="mv" id="mFat">0g</span></div>
         </div>
       </div>
 
@@ -347,6 +378,22 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     </div>
     <button class="btn mt" onclick="savePreset()">Guardar plato</button>
     <button class="link mt" id="delPresetBtn" style="display:none;margin:14px auto 0;color:var(--danger)" onclick="deletePreset()">Eliminar plato</button>
+  </div>
+</div>
+
+<!-- MODAL: quality analyzer -->
+<div class="modal-bg" id="modalQuality">
+  <div class="modal">
+    <h3>Análisis del producto<button class="x" onclick="closeModal('modalQuality')">✕</button></h3>
+    <div id="qualityBody"></div>
+  </div>
+</div>
+
+<!-- MODAL: nutrient info -->
+<div class="modal-bg" id="modalInfo">
+  <div class="modal">
+    <h3><span id="infoTitle">Nutriente</span><button class="x" onclick="closeModal('modalInfo')">✕</button></h3>
+    <div id="infoBody"></div>
   </div>
 </div>
 
@@ -594,18 +641,141 @@ async function stopScan(){
   scanning=false;const btn=document.getElementById('scanToggle');if(btn)btn.textContent='▶ Iniciar cámara';
 }
 function lookupManual(){const c=document.getElementById('manualCode').value.trim();if(c)lookup(c);}
+let lastProduct=null,lastCode=null;
 async function lookup(code){
-  toast('Buscando '+code+'…');
+  toast('Analizando '+code+'…');
   try{
-    const res=await fetch(`https://world.openfoodfacts.org/api/v2/product/${code}.json?fields=product_name,brands,nutriments,image_front_small_url`);
+    const fields='product_name,brands,nutriments,nutriscore_grade,nova_group,additives_tags,labels_tags,nutrient_levels';
+    const res=await fetch(`https://world.openfoodfacts.org/api/v2/product/${code}.json?fields=${fields}`);
     const j=await res.json();
     if(j.status!==1||!j.product){toast('Producto no encontrado');return;}
-    const p=j.product,n=p.nutriments||{};
-    const name=[p.product_name,p.brands?('('+p.brands.split(',')[0]+')'):''].filter(Boolean).join(' ')||('Producto '+code);
-    prefillFromProduct({name,
-      kcal:n['energy-kcal_100g']||0,carb:n['carbohydrates_100g']||0,
-      prot:n['proteins_100g']||0,fat:n['fat_100g']||0});
+    showProductResult(j.product,code);
   }catch(e){toast('Error de red');}
+}
+
+/* ---------- Analizador de calidad (estilo Yuka) ---------- */
+const ADDITIVE_RISK={
+  e102:'alto',e104:'alto',e110:'alto',e122:'alto',e124:'alto',e129:'alto',e171:'alto',
+  e250:'alto',e251:'alto',e252:'alto',e320:'alto',e321:'alto',
+  e210:'moderado',e211:'moderado',e212:'moderado',e213:'moderado',
+  e220:'moderado',e221:'moderado',e222:'moderado',e223:'moderado',e224:'moderado',e228:'moderado',
+  e621:'moderado',e622:'moderado',e623:'moderado',
+  e950:'moderado',e951:'moderado',e952:'moderado',e954:'moderado',
+  e407:'limitado',e433:'limitado',e466:'limitado',e471:'limitado',e150c:'limitado',e150d:'limitado',
+};
+const ADDITIVE_NAME={
+  e102:'Tartrazina',e104:'Amarillo de quinoleína',e110:'Amarillo ocaso',e122:'Azorrubina',e124:'Rojo cochinilla',e129:'Rojo allura',
+  e171:'Dióxido de titanio',e250:'Nitrito sódico',e251:'Nitrato sódico',e252:'Nitrato potásico',e320:'BHA',e321:'BHT',
+  e210:'Ácido benzoico',e211:'Benzoato sódico',e220:'Dióxido de azufre',e621:'Glutamato (MSG)',
+  e951:'Aspartamo',e950:'Acesulfamo K',e952:'Ciclamato',e954:'Sacarina',e407:'Carragenanos',e471:'Mono/diglicéridos',
+};
+function novaLabel(n){return {1:'Sin procesar',2:'Poco procesado',3:'Procesado',4:'Ultraprocesado'}[n]||'—';}
+function riskLabel(r){return {alto:'Riesgo alto',moderado:'Riesgo moderado',limitado:'Riesgo limitado'}[r]||'';}
+function qualityScore(p){
+  const grade=(p.nutriscore_grade||'').toLowerCase();
+  const nutriMap={a:100,b:80,c:55,d:30,e:10};
+  const nutrition=(grade in nutriMap)?nutriMap[grade]:null;
+  const tags=(p.additives_tags||[]).map(t=>t.replace(/^en:/,'').split('-')[0]);
+  let pen=0;const flagged=[];
+  tags.forEach(c=>{const risk=ADDITIVE_RISK[c];
+    if(risk==='alto'){pen+=28;flagged.push({code:c,risk});}
+    else if(risk==='moderado'){pen+=14;flagged.push({code:c,risk});}
+    else if(risk==='limitado'){pen+=5;flagged.push({code:c,risk});}});
+  const additivesScore=Math.max(0,100-pen);
+  const organic=(p.labels_tags||[]).some(t=>/organic|ecolog|(^|:)bio$/.test(t));
+  let score = nutrition===null ? additivesScore*0.85+(organic?100:50)*0.15
+                               : nutrition*0.6+additivesScore*0.3+(organic?100:50)*0.1;
+  score=Math.round(Math.max(0,Math.min(100,score)));
+  let cat,color;
+  if(score>=75){cat='Excelente';color='#1f9d55';}
+  else if(score>=50){cat='Bueno';color='#8bbf3c';}
+  else if(score>=25){cat='Mediocre';color='#ef9f28';}
+  else{cat='Malo';color='#e0574a';}
+  return {score,cat,color,grade,nova:p.nova_group,organic,flagged,addN:tags.length,levels:p.nutrient_levels||{}};
+}
+function renderLevels(lv){
+  const map=[['sugars','Azúcar','azucar'],['salt','Sal','sal'],['saturated-fat','Grasas saturadas','grasas'],['fat','Grasas','grasas']];
+  const items=map.filter(([k])=>lv[k]).map(([k,label,info])=>{
+    const v=lv[k],c=v==='low'?'#1f9d55':v==='moderate'?'#ef9f28':'#e0574a',t=v==='low'?'Bajo':v==='moderate'?'Medio':'Alto';
+    return `<button class="lvl" onclick="openNutrientInfo('${info}')"><span>${label}</span><b style="color:${c}">${t}</b></button>`;});
+  return items.length?`<h4 class="q-sub">Niveles (toca para saber más)</h4><div class="q-levels">${items.join('')}</div>`:'';
+}
+function showProductResult(p,code){
+  lastProduct=p;lastCode=code;
+  const n=p.nutriments||{};
+  const name=[p.product_name,p.brands?('('+p.brands.split(',')[0]+')'):''].filter(Boolean).join(' ')||('Producto '+code);
+  const q=qualityScore(p);
+  const addHtml=q.flagged.length
+    ? q.flagged.map(f=>`<div class="add-chip ${f.risk}"><b>${f.code.toUpperCase()}</b> ${ADDITIVE_NAME[f.code]||'Aditivo'}<span>${riskLabel(f.risk)}</span></div>`).join('')
+    : '<div class="add-ok">✓ Sin aditivos preocupantes</div>';
+  document.getElementById('qualityBody').innerHTML=`
+    <div class="q-head">
+      <div class="q-score" style="background:${q.color}">${q.score}<small>/100</small></div>
+      <div class="q-head-txt"><div class="q-cat" style="color:${q.color}">${q.cat}</div><div class="q-name">${esc(name)}</div></div>
+    </div>
+    <div class="q-rows">
+      <div class="q-row"><span>Nutri-Score</span><b>${q.grade?q.grade.toUpperCase():'—'}</b></div>
+      <div class="q-row"><span>Procesamiento</span><b>${novaLabel(q.nova)}</b></div>
+      <div class="q-row"><span>Aditivos</span><b>${q.addN}</b></div>
+      <div class="q-row"><span>Ecológico</span><b>${q.organic?'Sí':'No'}</b></div>
+    </div>
+    <h4 class="q-sub">Aditivos a vigilar</h4>
+    <div class="q-adds">${addHtml}</div>
+    ${renderLevels(q.levels)}
+    <div class="q-macros">Por 100 g: <b>${r(n['energy-kcal_100g']||0)} kcal</b> · ${r(n['carbohydrates_100g']||0)}g H · ${r(n['proteins_100g']||0)}g P · ${r(n['fat_100g']||0)}g G</div>
+    <button class="btn mt" onclick="saveScannedProduct()">Guardar como plato</button>
+    <div class="q-disc">Puntuación orientativa basada en Nutri-Score, nivel de procesado y aditivos (datos de Open Food Facts).</div>`;
+  openModal('modalQuality');
+}
+function saveScannedProduct(){
+  const p=lastProduct,n=p.nutriments||{};
+  const name=[p.product_name,p.brands?('('+p.brands.split(',')[0]+')'):''].filter(Boolean).join(' ')||('Producto '+lastCode);
+  closeModal('modalQuality');
+  prefillFromProduct({name,kcal:n['energy-kcal_100g']||0,carb:n['carbohydrates_100g']||0,prot:n['proteins_100g']||0,fat:n['fat_100g']||0});
+}
+
+/* ---------- Fichas educativas de nutrientes ---------- */
+const NUTRIENT_INFO={
+  prot:{t:'Proteínas',color:'#e5604e',
+    q:'Son los "ladrillos" de tu cuerpo: construyen y reparan músculos, piel, órganos y defensas.',
+    imp:'Sin suficiente proteína no reparas tejidos ni mantienes masa muscular. Además sacian mucho, así que ayudan a no picar entre horas.',
+    src:'Carne, pescado, huevos, lácteos, legumbres (lentejas, garbanzos), tofu y frutos secos.',
+    help:'mantener y ganar músculo, recuperarte del ejercicio y llegar con menos hambre a la siguiente comida.'},
+  carb:{t:'Hidratos de carbono',color:'#ef9f28',
+    q:'Son la principal fuente de energía rápida del cuerpo, sobre todo para el cerebro y los músculos.',
+    imp:'Te dan gasolina para el día. Los integrales (avena, arroz integral) liberan energía poco a poco; los azúcares, de golpe.',
+    src:'Pan, arroz, pasta, patata, avena, fruta, legumbres y cereales.',
+    help:'tener energía estable, rendir en el ejercicio y concentrarte.'},
+  grasas:{t:'Grasas',color:'#8b6df0',
+    q:'Son energía concentrada y esenciales para fabricar hormonas y absorber vitaminas.',
+    imp:'Tu cuerpo las necesita para hormonas, cerebro y vitaminas A, D, E y K. La clave es elegir las buenas (insaturadas) frente a las saturadas.',
+    src:'Aceite de oliva, aguacate, frutos secos, pescado azul (salmón, sardinas) y semillas.',
+    help:'regular hormonas, saciarte y mantener sanas tus células.'},
+  azucar:{t:'Azúcar',color:'#e05a9a',
+    q:'Es un carbohidrato de absorción muy rápida que aporta energía inmediata… y poco más.',
+    imp:'Un poco no pasa nada, pero en exceso provoca subidas y bajadas de energía, caries y ganancia de grasa. Ojo con el azúcar "escondido" en los procesados.',
+    src:'Azúcar de mesa, refrescos, bollería, zumos y muchos ultraprocesados.',
+    help:'(mejor limitarlo) — cuando escaneas, busca que sea "Bajo".'},
+  sal:{t:'Sal',color:'#38a3d1',
+    q:'Aporta sodio, un mineral necesario en pequeñas cantidades para tus nervios y músculos.',
+    imp:'En exceso sube la tensión arterial y sobrecarga corazón y riñones. La mayoría viene ya oculta en pan, embutidos y precocinados.',
+    src:'Sal de mesa, embutidos, quesos curados, snacks salados y comida procesada.',
+    help:'(mejor moderarla) — la OMS recomienda menos de 5 g al día.'},
+  fibra:{t:'Fibra',color:'#1f9d55',
+    q:'Es la parte de los vegetales que no digieres, pero que alimenta tu flora intestinal.',
+    imp:'Mejora la digestión, te sacia, regula el azúcar en sangre y ayuda con el colesterol. Casi todo el mundo toma menos de la que debería.',
+    src:'Verduras, fruta con piel, legumbres, avena, frutos secos e integrales.',
+    help:'ir bien al baño, saciarte y cuidar tu intestino.'},
+};
+function openNutrientInfo(key){
+  const d=NUTRIENT_INFO[key];if(!d)return;
+  document.getElementById('infoTitle').innerHTML=`<span class="info-dot" style="background:${d.color}"></span>${d.t}`;
+  document.getElementById('infoBody').innerHTML=`
+    <div class="info-p"><b>¿Qué es?</b><br>${d.q}</div>
+    <div class="info-p"><b>¿Por qué es importante?</b><br>${d.imp}</div>
+    <div class="info-p"><b>¿De dónde se obtiene?</b><br>${d.src}</div>
+    <div class="info-p"><b>Te ayuda a…</b><br>${d.help}</div>`;
+  openModal('modalInfo');
 }
 function prefillFromProduct(d){
   editingId=null;
