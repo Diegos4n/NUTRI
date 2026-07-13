@@ -385,8 +385,12 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       <option value="serving">A la ración completa (todo el plato)</option>
       <option value="g">Por 100 g</option>
       <option value="ml">Por 100 ml (líquidos)</option>
-      <option value="unit">Por unidad (1 galleta, 1 pieza…)</option>
+      <option value="unit">Por unidad / medida (tú la nombras)</option>
     </select>
+    <div id="unitNameWrap" style="display:none">
+      <label>¿Cómo se llama la medida?</label>
+      <input id="fUnitName" placeholder="ej. galleta, loncha, vaso, cucharada">
+    </div>
     <div id="pkgWrap" style="display:none">
       <label id="pkgLabel">Tamaño del envase</label>
       <input id="fPkg" type="number" inputmode="decimal" placeholder="opcional">
@@ -540,14 +544,16 @@ function renderQuick(){
 }
 /* ---------- Unidades flexibles ---------- */
 function ubase(p){const u=p.unit;if(u==='100g'||u==='g')return 'g';if(u==='ml')return 'ml';if(u==='unit')return 'unit';return 'serving';}
-function perShort(p){return {g:' /100g',ml:' /100ml',unit:' /ud',serving:''}[ubase(p)];}
-function perLabel(p){return {g:'por 100 g',ml:'por 100 ml',unit:'por unidad',serving:'ración completa'}[ubase(p)];}
-function unitWord(base,n){if(base==='g')return n+' g';if(base==='ml')return n+' ml';if(base==='unit')return n+(n===1?' unidad':' unidades');return n+(n===1?' ración':' raciones');}
+function uname(p){return (p&&p.unitName)?p.unitName:'unidad';}
+function plur(name,n){return n===1?name:(/s$/i.test(name)?name:name+'s');}
+function perShort(p){const b=ubase(p);return b==='g'?' /100g':b==='ml'?' /100ml':b==='unit'?(' /'+uname(p)):'';}
+function perLabel(p){const b=ubase(p);return b==='g'?'por 100 g':b==='ml'?'por 100 ml':b==='unit'?('por '+uname(p)):'ración completa';}
+function unitWord(p,base,n){if(base==='g')return n+' g';if(base==='ml')return n+' ml';if(base==='unit')return n+' '+plur(uname(p),n);return n+(n===1?' ración':' raciones');}
 
 function quickAdd(id){
   const p=DB.presets.find(x=>x.id===id);if(!p)return;
   const base=ubase(p);
-  const label=base==='g'?'100 g':base==='ml'?'100 ml':base==='unit'?'1 unidad':'1 ración';
+  const label=base==='g'?'100 g':base==='ml'?'100 ml':base==='unit'?('1 '+uname(p)):'1 ración';
   DB.log.push({id:uid(),date:today(),name:p.name,emoji:p.emoji,qty:label,kcal:p.kcal,carb:p.carb,prot:p.prot,fat:p.fat});
   save();renderHoy();toast('✓ '+p.name);
 }
@@ -585,9 +591,10 @@ function chooseQty(id){
       <input id="qtyG" type="number" inputmode="decimal" value="100">
       <div class="qbtns">${btns.join('')}</div>`;
   } else if(qtyBase==='unit'){
-    const btns=[`<button class="qbtn" onclick="setQty(1)">1 unidad</button>`];
-    if(p.pkg) btns.push(`<button class="qbtn" onclick="setQty(${p.pkg})">Paquete entero (${r(p.pkg)} uds)</button>`);
-    html=`<label>Nº de unidades</label>
+    const nm=uname(p);
+    const btns=[`<button class="qbtn" onclick="setQty(1)">1 ${nm}</button>`];
+    if(p.pkg) btns.push(`<button class="qbtn" onclick="setQty(${p.pkg})">Paquete entero (${r(p.pkg)} ${plur(nm,p.pkg)})</button>`);
+    html=`<label>Nº de ${plur(nm,2)}</label>
       <input id="qtyN" type="number" inputmode="decimal" value="1" step="1">
       <div class="qbtns">${btns.join('')}</div>`;
   } else {
@@ -603,8 +610,8 @@ function chooseQty(id){
 }
 function setQty(v){const el=document.getElementById('qtyG')||document.getElementById('qtyN');if(el){el.value=v;updQty();}}
 function qtyFactor(){
-  if(qtyBase==='g'||qtyBase==='ml'){const a=+document.getElementById('qtyG').value||0;return {f:a/100,label:unitWord(qtyBase,r1(a))};}
-  const n=+document.getElementById('qtyN').value||0;return {f:n,label:unitWord(qtyBase,n)};
+  if(qtyBase==='g'||qtyBase==='ml'){const a=+document.getElementById('qtyG').value||0;return {f:a/100,label:unitWord(qtyP,qtyBase,r1(a))};}
+  const n=+document.getElementById('qtyN').value||0;return {f:n,label:unitWord(qtyP,qtyBase,n)};
 }
 function updQty(){
   const p=qtyP,{f}=qtyFactor();
@@ -628,6 +635,7 @@ let editingId=null;
 function onUnitChange(){
   const u=document.getElementById('fUnit').value;
   const wrap=document.getElementById('pkgWrap'),lbl=document.getElementById('pkgLabel');
+  document.getElementById('unitNameWrap').style.display=u==='unit'?'':'none';
   if(u==='g'){wrap.style.display='';lbl.textContent='Tamaño del envase en g (opcional)';}
   else if(u==='ml'){wrap.style.display='';lbl.textContent='Tamaño del envase en ml (opcional)';}
   else if(u==='unit'){wrap.style.display='';lbl.textContent='Unidades por paquete (opcional)';}
@@ -640,6 +648,7 @@ function openPresetForm(id){
   document.getElementById('fName').value=p?p.name:'';
   document.getElementById('fUnit').value=p?(p.unit==='100g'?'g':p.unit):'serving';
   document.getElementById('fPkg').value=p&&p.pkg?p.pkg:'';
+  document.getElementById('fUnitName').value=p&&p.unitName?p.unitName:'';
   onUnitChange();
   document.getElementById('fKcal').value=p?p.kcal:'';
   document.getElementById('fCarb').value=p?p.carb:'';
@@ -656,7 +665,9 @@ function savePreset(){
   const name=document.getElementById('fName').value.trim();
   if(!name){toast('Ponle un nombre');return;}
   const pkg=+document.getElementById('fPkg').value||0;
-  const data={name,emoji:selEmoji,unit:document.getElementById('fUnit').value,pkg:pkg||null,
+  const unit=document.getElementById('fUnit').value;
+  const unitName=(document.getElementById('fUnitName').value||'').trim();
+  const data={name,emoji:selEmoji,unit,pkg:pkg||null,unitName:(unit==='unit'?(unitName||'unidad'):null),
     kcal:+document.getElementById('fKcal').value||0,carb:+document.getElementById('fCarb').value||0,
     prot:+document.getElementById('fProt').value||0,fat:+document.getElementById('fFat').value||0};
   if(editingId){Object.assign(DB.presets.find(x=>x.id===editingId),data);}
@@ -863,6 +874,7 @@ function prefillFromProduct(d){
   document.getElementById('fName').value=d.name;
   document.getElementById('fUnit').value=d.unit||'g';
   document.getElementById('fPkg').value=d.pkg||'';
+  document.getElementById('fUnitName').value='';
   onUnitChange();
   document.getElementById('fKcal').value=r1(d.kcal);
   document.getElementById('fCarb').value=r1(d.carb);
