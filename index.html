@@ -230,6 +230,21 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
 .info-dot{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:8px;vertical-align:middle}
 .info-p{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:13px 15px;font-size:14px;line-height:1.5;color:var(--txt);margin-bottom:10px}
 .info-p b{color:var(--accent-d);font-weight:700}
+.info-rec{background:#fbf5ea;border:1px solid;border-left-width:4px;border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.5;color:var(--txt);margin-bottom:12px;font-weight:600}
+.info-rec-l{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:700;margin-bottom:3px}
+
+/* nutrition block in analyzer */
+.q-nutri{display:flex;gap:8px;margin-top:16px}
+.q-nutri .qn-tile{flex:1;background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:12px 6px;text-align:center}
+.q-nutri .qn-tile.kcal{background:linear-gradient(160deg,rgba(31,157,85,.14),rgba(31,157,85,.06));border-color:rgba(31,157,85,.28)}
+.q-nutri .qn-tile b{display:block;font-size:19px;font-weight:800;letter-spacing:-.4px}
+.q-nutri .qn-tile.kcal b{color:var(--accent-d)}
+.q-nutri .qn-tile span{display:block;font-size:10.5px;color:var(--muted);margin-top:3px;display:flex;align-items:center;justify-content:center;gap:4px}
+.q-nutri .qn-tile span i{width:8px;height:8px;border-radius:3px;display:inline-block}
+.q-per{text-align:center;font-size:11.5px;color:var(--muted);margin-top:6px}
+.qbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.qbtn{background:var(--card2);border:1px solid var(--line);color:var(--txt);font-weight:600;font-size:13px;padding:9px 13px;border-radius:11px}
+.qbtn:active{border-color:var(--accent);transform:scale(.97)}
 </style>
 </head>
 <body>
@@ -365,11 +380,17 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
     <input id="fName" placeholder="ej. Plato de migas">
     <label>Icono</label>
     <div class="emoji-pick" id="emojiPick"></div>
-    <label>Los valores son por…</label>
-    <select id="fUnit">
-      <option value="serving">Ración (todo el plato)</option>
-      <option value="100g">100 g</option>
+    <label>¿A qué cantidad corresponden los valores?</label>
+    <select id="fUnit" onchange="onUnitChange()">
+      <option value="serving">A la ración completa (todo el plato)</option>
+      <option value="g">Por 100 g</option>
+      <option value="ml">Por 100 ml (líquidos)</option>
+      <option value="unit">Por unidad (1 galleta, 1 pieza…)</option>
     </select>
+    <div id="pkgWrap" style="display:none">
+      <label id="pkgLabel">Tamaño del envase</label>
+      <input id="fPkg" type="number" inputmode="decimal" placeholder="opcional">
+    </div>
     <div class="grid2 mt">
       <div><label>Kcal</label><input id="fKcal" type="number" inputmode="numeric"></div>
       <div><label>Hidratos (g)</label><input id="fCarb" type="number" inputmode="decimal"></div>
@@ -517,10 +538,17 @@ function renderQuick(){
       <span class="qn">${esc(p.name)}</span>
       <span class="qk">${r(p.kcal)} kcal</span></button>`).join('')+`</div></div>`;
 }
+/* ---------- Unidades flexibles ---------- */
+function ubase(p){const u=p.unit;if(u==='100g'||u==='g')return 'g';if(u==='ml')return 'ml';if(u==='unit')return 'unit';return 'serving';}
+function perShort(p){return {g:' /100g',ml:' /100ml',unit:' /ud',serving:''}[ubase(p)];}
+function perLabel(p){return {g:'por 100 g',ml:'por 100 ml',unit:'por unidad',serving:'ración completa'}[ubase(p)];}
+function unitWord(base,n){if(base==='g')return n+' g';if(base==='ml')return n+' ml';if(base==='unit')return n+(n===1?' unidad':' unidades');return n+(n===1?' ración':' raciones');}
+
 function quickAdd(id){
   const p=DB.presets.find(x=>x.id===id);if(!p)return;
-  DB.log.push({id:uid(),date:today(),name:p.name,emoji:p.emoji,
-    qty:p.unit==='100g'?'100 g':'1 ración',kcal:p.kcal,carb:p.carb,prot:p.prot,fat:p.fat});
+  const base=ubase(p);
+  const label=base==='g'?'100 g':base==='ml'?'100 ml':base==='unit'?'1 unidad':'1 ración';
+  DB.log.push({id:uid(),date:today(),name:p.name,emoji:p.emoji,qty:label,kcal:p.kcal,carb:p.carb,prot:p.prot,fat:p.fat});
   save();renderHoy();toast('✓ '+p.name);
 }
 
@@ -532,7 +560,7 @@ function renderPicker(){
   document.getElementById('pickerList').innerHTML=list.map(p=>presetRow(p,true)).join('')||'<div class="empty">Sin resultados</div>';
 }
 function presetRow(p,picker){
-  const per=p.unit==='100g'?' /100g':'';
+  const per=perShort(p);
   return `<div class="preset">
     <div class="emoji">${p.emoji||'🍽️'}</div>
     <div class="info"><div class="name">${esc(p.name)}</div>
@@ -541,39 +569,51 @@ function presetRow(p,picker){
             :`<button class="edit" onclick="openPresetForm('${p.id}')">✏️</button><button class="add" onclick="chooseQty('${p.id}')">＋</button>`}
   </div>`;
 }
+let qtyP=null,qtyBase='g';
 function chooseQty(id){
   const p=DB.presets.find(x=>x.id===id);if(!p)return;
   closeModal('modalPicker');
+  qtyP=p;qtyBase=ubase(p);
   document.getElementById('addTitle').textContent=p.name;
   const body=document.getElementById('addBody');
-  if(p.unit==='100g'){
-    body.innerHTML=`
-      <label>Cantidad (gramos)</label>
-      <input id="qtyG" type="number" inputmode="numeric" value="100">
-      <div class="macro-row" style="margin-top:10px"><span class="lbl">Se registrará:</span></div>
-      <div id="qtyPreview" class="kcal-sub"></div>
-      <button class="btn mt" onclick="confirmAdd('${id}')">Añadir a hoy</button>`;
-    const upd=()=>{const g=+document.getElementById('qtyG').value||0;const f=g/100;
-      document.getElementById('qtyPreview').textContent=`${r(p.kcal*f)} kcal · ${r(p.carb*f)}g H · ${r(p.prot*f)}g P · ${r(p.fat*f)}g G`;};
-    setTimeout(()=>{document.getElementById('qtyG').oninput=upd;upd();},30);
+  let html='';
+  if(qtyBase==='g'||qtyBase==='ml'){
+    const u=qtyBase;
+    const btns=[`<button class="qbtn" onclick="setQty(100)">100 ${u}</button>`];
+    if(p.pkg) btns.push(`<button class="qbtn" onclick="setQty(${p.pkg})">Envase entero (${r(p.pkg)} ${u})</button>`);
+    html=`<label>Cantidad (${u})</label>
+      <input id="qtyG" type="number" inputmode="decimal" value="100">
+      <div class="qbtns">${btns.join('')}</div>`;
+  } else if(qtyBase==='unit'){
+    const btns=[`<button class="qbtn" onclick="setQty(1)">1 unidad</button>`];
+    if(p.pkg) btns.push(`<button class="qbtn" onclick="setQty(${p.pkg})">Paquete entero (${r(p.pkg)} uds)</button>`);
+    html=`<label>Nº de unidades</label>
+      <input id="qtyN" type="number" inputmode="decimal" value="1" step="1">
+      <div class="qbtns">${btns.join('')}</div>`;
   } else {
-    body.innerHTML=`
-      <label>Nº de raciones</label>
-      <input id="qtyN" type="number" inputmode="decimal" value="1" step="0.5">
-      <div id="qtyPreview" class="kcal-sub" style="margin-top:10px"></div>
-      <button class="btn mt" onclick="confirmAdd('${id}')">Añadir a hoy</button>`;
-    const upd=()=>{const n=+document.getElementById('qtyN').value||0;
-      document.getElementById('qtyPreview').textContent=`${r(p.kcal*n)} kcal · ${r(p.carb*n)}g H · ${r(p.prot*n)}g P · ${r(p.fat*n)}g G`;};
-    setTimeout(()=>{document.getElementById('qtyN').oninput=upd;upd();},30);
+    html=`<label>Nº de raciones</label>
+      <input id="qtyN" type="number" inputmode="decimal" value="1" step="0.5">`;
   }
+  body.innerHTML=`${html}
+    <div id="qtyPreview" class="kcal-sub" style="margin-top:14px"></div>
+    <button class="btn mt" onclick="confirmAdd('${id}')">Añadir a hoy</button>`;
+  const el=document.getElementById(qtyBase==='g'||qtyBase==='ml'?'qtyG':'qtyN');
+  setTimeout(()=>{el.oninput=updQty;updQty();},30);
   openModal('modalAdd');
+}
+function setQty(v){const el=document.getElementById('qtyG')||document.getElementById('qtyN');if(el){el.value=v;updQty();}}
+function qtyFactor(){
+  if(qtyBase==='g'||qtyBase==='ml'){const a=+document.getElementById('qtyG').value||0;return {f:a/100,label:unitWord(qtyBase,r1(a))};}
+  const n=+document.getElementById('qtyN').value||0;return {f:n,label:unitWord(qtyBase,n)};
+}
+function updQty(){
+  const p=qtyP,{f}=qtyFactor();
+  document.getElementById('qtyPreview').innerHTML=`Se registrará: <b>${r(p.kcal*f)} kcal</b> · ${r(p.carb*f)}g H · ${r(p.prot*f)}g P · ${r(p.fat*f)}g G`;
 }
 function confirmAdd(id){
   const p=DB.presets.find(x=>x.id===id);if(!p)return;
-  let f=1,qty='';
-  if(p.unit==='100g'){const g=+document.getElementById('qtyG').value||0;f=g/100;qty=g+' g';}
-  else{const n=+document.getElementById('qtyN').value||0;f=n;qty=n+(n===1?' ración':' raciones');}
-  DB.log.push({id:uid(),date:today(),name:p.name,emoji:p.emoji,qty,kcal:p.kcal*f,carb:p.carb*f,prot:p.prot*f,fat:p.fat*f});
+  const {f,label}=qtyFactor();
+  DB.log.push({id:uid(),date:today(),name:p.name,emoji:p.emoji,qty:label,kcal:p.kcal*f,carb:p.carb*f,prot:p.prot*f,fat:p.fat*f});
   save();closeModal('modalAdd');go('hoy');toast('✓ Añadido a hoy');
 }
 
@@ -585,12 +625,22 @@ function renderPresets(){
 }
 const EMOJIS=['🍽️','🍳','🍝','🍗','🍌','🥗','🍚','🍔','🌮','🥪','🍕','🥩','🐟','🥘','🍲','🥛','🍎','☕','🧀','🥚'];
 let editingId=null;
+function onUnitChange(){
+  const u=document.getElementById('fUnit').value;
+  const wrap=document.getElementById('pkgWrap'),lbl=document.getElementById('pkgLabel');
+  if(u==='g'){wrap.style.display='';lbl.textContent='Tamaño del envase en g (opcional)';}
+  else if(u==='ml'){wrap.style.display='';lbl.textContent='Tamaño del envase en ml (opcional)';}
+  else if(u==='unit'){wrap.style.display='';lbl.textContent='Unidades por paquete (opcional)';}
+  else{wrap.style.display='none';}
+}
 function openPresetForm(id){
   editingId=id||null;
   const p=id?DB.presets.find(x=>x.id===id):null;
   document.getElementById('formTitle').textContent=p?'Editar plato':'Nuevo plato';
   document.getElementById('fName').value=p?p.name:'';
-  document.getElementById('fUnit').value=p?p.unit:'serving';
+  document.getElementById('fUnit').value=p?(p.unit==='100g'?'g':p.unit):'serving';
+  document.getElementById('fPkg').value=p&&p.pkg?p.pkg:'';
+  onUnitChange();
   document.getElementById('fKcal').value=p?p.kcal:'';
   document.getElementById('fCarb').value=p?p.carb:'';
   document.getElementById('fProt').value=p?p.prot:'';
@@ -605,7 +655,8 @@ function pickEmoji(e,el){selEmoji=e;document.querySelectorAll('#emojiPick button
 function savePreset(){
   const name=document.getElementById('fName').value.trim();
   if(!name){toast('Ponle un nombre');return;}
-  const data={name,emoji:selEmoji,unit:document.getElementById('fUnit').value,
+  const pkg=+document.getElementById('fPkg').value||0;
+  const data={name,emoji:selEmoji,unit:document.getElementById('fUnit').value,pkg:pkg||null,
     kcal:+document.getElementById('fKcal').value||0,carb:+document.getElementById('fCarb').value||0,
     prot:+document.getElementById('fProt').value||0,fat:+document.getElementById('fFat').value||0};
   if(editingId){Object.assign(DB.presets.find(x=>x.id===editingId),data);}
@@ -645,7 +696,7 @@ let lastProduct=null,lastCode=null;
 async function lookup(code){
   toast('Analizando '+code+'…');
   try{
-    const fields='product_name,brands,nutriments,nutriscore_grade,nova_group,additives_tags,labels_tags,nutrient_levels';
+    const fields='product_name,brands,nutriments,nutriscore_grade,nova_group,additives_tags,labels_tags,nutrient_levels,quantity,serving_size,product_quantity,product_quantity_unit';
     const res=await fetch(`https://world.openfoodfacts.org/api/v2/product/${code}.json?fields=${fields}`);
     const j=await res.json();
     if(j.status!==1||!j.product){toast('Producto no encontrado');return;}
@@ -694,7 +745,7 @@ function qualityScore(p){
   return {score,cat,color,grade,nova:p.nova_group,organic,flagged,addN:tags.length,levels:p.nutrient_levels||{}};
 }
 function renderLevels(lv){
-  const map=[['sugars','Azúcar','azucar'],['salt','Sal','sal'],['saturated-fat','Grasas saturadas','grasas'],['fat','Grasas','grasas']];
+  const map=[['sugars','Azúcar','azucar'],['salt','Sal','sal'],['saturated-fat','Grasas saturadas','grasa_sat'],['fat','Grasas','grasas']];
   const items=map.filter(([k])=>lv[k]).map(([k,label,info])=>{
     const v=lv[k],c=v==='low'?'#1f9d55':v==='moderate'?'#ef9f28':'#e0574a',t=v==='low'?'Bajo':v==='moderate'?'Medio':'Alto';
     return `<button class="lvl" onclick="openNutrientInfo('${info}')"><span>${label}</span><b style="color:${c}">${t}</b></button>`;});
@@ -722,46 +773,74 @@ function showProductResult(p,code){
     <h4 class="q-sub">Aditivos a vigilar</h4>
     <div class="q-adds">${addHtml}</div>
     ${renderLevels(q.levels)}
-    <div class="q-macros">Por 100 g: <b>${r(n['energy-kcal_100g']||0)} kcal</b> · ${r(n['carbohydrates_100g']||0)}g H · ${r(n['proteins_100g']||0)}g P · ${r(n['fat_100g']||0)}g G</div>
+    <h4 class="q-sub">Información nutricional</h4>
+    <div class="q-nutri">
+      <div class="qn-tile kcal"><b>${r(n['energy-kcal_100g']||0)}</b><span>kcal</span></div>
+      <div class="qn-tile"><b>${r(n['carbohydrates_100g']||0)}g</b><span><i style="background:var(--carb)"></i>Hidratos</span></div>
+      <div class="qn-tile"><b>${r(n['proteins_100g']||0)}g</b><span><i style="background:var(--prot)"></i>Proteína</span></div>
+      <div class="qn-tile"><b>${r(n['fat_100g']||0)}g</b><span><i style="background:var(--fat)"></i>Grasas</span></div>
+    </div>
+    <div class="q-per">valores por 100 ${/l$|ml|cl|litro/i.test(p.quantity||p.product_quantity_unit||'')?'ml':'g'}</div>
     <button class="btn mt" onclick="saveScannedProduct()">Guardar como plato</button>
     <div class="q-disc">Puntuación orientativa basada en Nutri-Score, nivel de procesado y aditivos (datos de Open Food Facts).</div>`;
   openModal('modalQuality');
 }
+function parsePkg(p){
+  let n=+p.product_quantity||0;
+  let u=(p.product_quantity_unit||'').toLowerCase();
+  if(!n && p.quantity){const m=String(p.quantity).match(/([\d.,]+)\s*(kg|g|l|cl|ml)/i);if(m){n=parseFloat(m[1].replace(',','.'));u=m[2].toLowerCase();}}
+  const base=/ml|cl|(^|[^a-z])l|litro/i.test(u)?'ml':'g';
+  if(u==='l'||u==='litro') n*=1000; else if(u==='cl') n*=10; else if(u==='kg') n*=1000;
+  return {base,pkg:Math.round(n)||0};
+}
 function saveScannedProduct(){
   const p=lastProduct,n=p.nutriments||{};
   const name=[p.product_name,p.brands?('('+p.brands.split(',')[0]+')'):''].filter(Boolean).join(' ')||('Producto '+lastCode);
+  const {base,pkg}=parsePkg(p);
   closeModal('modalQuality');
-  prefillFromProduct({name,kcal:n['energy-kcal_100g']||0,carb:n['carbohydrates_100g']||0,prot:n['proteins_100g']||0,fat:n['fat_100g']||0});
+  prefillFromProduct({name,unit:base,pkg,kcal:n['energy-kcal_100g']||0,carb:n['carbohydrates_100g']||0,prot:n['proteins_100g']||0,fat:n['fat_100g']||0});
 }
 
 /* ---------- Fichas educativas de nutrientes ---------- */
 const NUTRIENT_INFO={
   prot:{t:'Proteínas',color:'#e5604e',
+    rec:'≈ 0,8–1,2 g por kg de peso al día (unos 55–90 g en una persona media). Más si entrenas fuerza.',
     q:'Son los "ladrillos" de tu cuerpo: construyen y reparan músculos, piel, órganos y defensas.',
     imp:'Sin suficiente proteína no reparas tejidos ni mantienes masa muscular. Además sacian mucho, así que ayudan a no picar entre horas.',
     src:'Carne, pescado, huevos, lácteos, legumbres (lentejas, garbanzos), tofu y frutos secos.',
     help:'mantener y ganar músculo, recuperarte del ejercicio y llegar con menos hambre a la siguiente comida.'},
   carb:{t:'Hidratos de carbono',color:'#ef9f28',
+    rec:'≈ 45–60 % de tus calorías: unos 225–325 g al día en una dieta de 2000 kcal.',
     q:'Son la principal fuente de energía rápida del cuerpo, sobre todo para el cerebro y los músculos.',
     imp:'Te dan gasolina para el día. Los integrales (avena, arroz integral) liberan energía poco a poco; los azúcares, de golpe.',
     src:'Pan, arroz, pasta, patata, avena, fruta, legumbres y cereales.',
     help:'tener energía estable, rendir en el ejercicio y concentrarte.'},
   grasas:{t:'Grasas',color:'#8b6df0',
+    rec:'≈ 20–35 % de tus calorías: unos 55–78 g al día en una dieta de 2000 kcal.',
     q:'Son energía concentrada y esenciales para fabricar hormonas y absorber vitaminas.',
     imp:'Tu cuerpo las necesita para hormonas, cerebro y vitaminas A, D, E y K. La clave es elegir las buenas (insaturadas) frente a las saturadas.',
     src:'Aceite de oliva, aguacate, frutos secos, pescado azul (salmón, sardinas) y semillas.',
     help:'regular hormonas, saciarte y mantener sanas tus células.'},
+  grasa_sat:{t:'Grasas saturadas',color:'#d9683a',
+    rec:'Máximo ≈ 20–22 g al día (menos del 10 % de tus calorías).',
+    q:'Son un tipo de grasa que el cuerpo usa como energía, pero que conviene limitar.',
+    imp:'En exceso suben el colesterol "malo" (LDL) y el riesgo cardiovascular. Abundan en ultraprocesados, bollería y carnes grasas.',
+    src:'Mantequilla, embutidos, quesos grasos, bollería, aceite de palma y carnes grasas.',
+    help:'(mejor limitarlas) — busca que sean "Bajo" en lo que escaneas.'},
   azucar:{t:'Azúcar',color:'#e05a9a',
+    rec:'Máximo ≈ 25 g/día (recomendación ideal de la OMS) y no pasar de 50 g. Cuenta sobre todo el azúcar añadido.',
     q:'Es un carbohidrato de absorción muy rápida que aporta energía inmediata… y poco más.',
     imp:'Un poco no pasa nada, pero en exceso provoca subidas y bajadas de energía, caries y ganancia de grasa. Ojo con el azúcar "escondido" en los procesados.',
     src:'Azúcar de mesa, refrescos, bollería, zumos y muchos ultraprocesados.',
     help:'(mejor limitarlo) — cuando escaneas, busca que sea "Bajo".'},
   sal:{t:'Sal',color:'#38a3d1',
+    rec:'Máximo ≈ 5 g al día (OMS) — equivale a unos 2 g de sodio.',
     q:'Aporta sodio, un mineral necesario en pequeñas cantidades para tus nervios y músculos.',
     imp:'En exceso sube la tensión arterial y sobrecarga corazón y riñones. La mayoría viene ya oculta en pan, embutidos y precocinados.',
     src:'Sal de mesa, embutidos, quesos curados, snacks salados y comida procesada.',
     help:'(mejor moderarla) — la OMS recomienda menos de 5 g al día.'},
   fibra:{t:'Fibra',color:'#1f9d55',
+    rec:'Objetivo ≈ 25–30 g al día. La mayoría de la gente se queda corta.',
     q:'Es la parte de los vegetales que no digieres, pero que alimenta tu flora intestinal.',
     imp:'Mejora la digestión, te sacia, regula el azúcar en sangre y ayuda con el colesterol. Casi todo el mundo toma menos de la que debería.',
     src:'Verduras, fruta con piel, legumbres, avena, frutos secos e integrales.',
@@ -771,6 +850,7 @@ function openNutrientInfo(key){
   const d=NUTRIENT_INFO[key];if(!d)return;
   document.getElementById('infoTitle').innerHTML=`<span class="info-dot" style="background:${d.color}"></span>${d.t}`;
   document.getElementById('infoBody').innerHTML=`
+    <div class="info-rec" style="border-color:${d.color}"><span class="info-rec-l">Recomendación diaria</span>${d.rec}</div>
     <div class="info-p"><b>¿Qué es?</b><br>${d.q}</div>
     <div class="info-p"><b>¿Por qué es importante?</b><br>${d.imp}</div>
     <div class="info-p"><b>¿De dónde se obtiene?</b><br>${d.src}</div>
@@ -781,7 +861,9 @@ function prefillFromProduct(d){
   editingId=null;
   document.getElementById('formTitle').textContent='Producto escaneado';
   document.getElementById('fName').value=d.name;
-  document.getElementById('fUnit').value='100g';
+  document.getElementById('fUnit').value=d.unit||'g';
+  document.getElementById('fPkg').value=d.pkg||'';
+  onUnitChange();
   document.getElementById('fKcal').value=r1(d.kcal);
   document.getElementById('fCarb').value=r1(d.carb);
   document.getElementById('fProt').value=r1(d.prot);
@@ -790,7 +872,7 @@ function prefillFromProduct(d){
   document.getElementById('emojiPick').innerHTML=EMOJIS.map(e=>`<button class="${e===selEmoji?'sel':''}" onclick="pickEmoji('${e}',this)">${e}</button>`).join('');
   document.getElementById('delPresetBtn').style.display='none';
   openModal('modalForm');
-  toast('✓ Datos cargados de Open Food Facts');
+  toast(d.pkg?('✓ Cargado · envase '+r(d.pkg)+' '+(d.unit==='ml'?'ml':'g')):'✓ Datos cargados de Open Food Facts');
 }
 
 /* ---------- STATS ---------- */
