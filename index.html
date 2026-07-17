@@ -245,6 +245,21 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
 .qbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .qbtn{background:var(--card2);border:1px solid var(--line);color:var(--txt);font-weight:600;font-size:13px;padding:9px 13px;border-radius:11px}
 .qbtn:active{border-color:var(--accent);transform:scale(.97)}
+
+/* meal groups + evaluation */
+.meal-group{margin-bottom:16px}
+.meal-group:last-child{margin-bottom:0}
+.meal-h{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.meal-h span{font-size:15px;font-weight:800;letter-spacing:-.2px}
+.meal-h b{font-size:13px;color:var(--muted);font-weight:700}
+.meal-eval{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.ev{font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:99px;border:1px solid}
+.ev.good{background:rgba(31,157,85,.12);border-color:rgba(31,157,85,.3);color:var(--accent-d)}
+.ev.ok{background:rgba(239,159,40,.13);border-color:rgba(239,159,40,.35);color:#9a6410}
+.ev.bad{background:rgba(224,87,74,.1);border-color:rgba(224,87,74,.32);color:#b23a2c}
+.meal-seg{display:flex;gap:6px;background:var(--card2);border-radius:12px;padding:3px;margin-bottom:4px}
+.meal-seg button{flex:1;background:none;color:var(--muted);padding:9px 2px;border-radius:9px;font-weight:700;font-size:12.5px}
+.meal-seg button.sel{background:var(--accent);color:#fff}
 </style>
 </head>
 <body>
@@ -400,6 +415,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       <div><label>Hidratos (g)</label><input id="fCarb" type="number" inputmode="decimal"></div>
       <div><label>Proteína (g)</label><input id="fProt" type="number" inputmode="decimal"></div>
       <div><label>Grasas (g)</label><input id="fFat" type="number" inputmode="decimal"></div>
+      <div><label>Fibra (g) · opcional</label><input id="fFib" type="number" inputmode="decimal"></div>
     </div>
     <button class="btn mt" onclick="savePreset()">Guardar plato</button>
     <button class="link mt" id="delPresetBtn" style="display:none;margin:14px auto 0;color:var(--danger)" onclick="deletePreset()">Eliminar plato</button>
@@ -477,7 +493,20 @@ function go(v){
 
 /* ---------- HOY ---------- */
 function todaysMeals(){return DB.log.filter(e=>e.date===today());}
-function sumMacros(entries){return entries.reduce((a,e)=>({kcal:a.kcal+e.kcal,carb:a.carb+e.carb,prot:a.prot+e.prot,fat:a.fat+e.fat}),{kcal:0,carb:0,prot:0,fat:0});}
+function sumMacros(entries){return entries.reduce((a,e)=>({kcal:a.kcal+e.kcal,carb:a.carb+e.carb,prot:a.prot+e.prot,fat:a.fat+e.fat,fiber:a.fiber+(e.fiber||0)}),{kcal:0,carb:0,prot:0,fat:0,fiber:0});}
+const MEALS=[['desayuno','Desayuno'],['comida','Comida'],['merienda','Merienda'],['cena','Cena']];
+function mealForTime(){const h=new Date().getHours();return h<12?'desayuno':h<17?'comida':h<20.5?'merienda':'cena';}
+function mealLabel(k){const m=MEALS.find(x=>x[0]===k);return m?m[1]:'Comida';}
+function evaluateMeal(s){
+  const out=[];
+  out.push(s.prot>=20?{l:'good',t:'Proteínas buenas'}:s.prot>=10?{l:'ok',t:'Proteínas correctas'}:{l:'bad',t:'Pocas proteínas'});
+  if(s.fiber>0) out.push(s.fiber>=5?{l:'good',t:'Buena en fibra'}:{l:'ok',t:'Algo de fibra'});
+  const kc=s.kcal||1,fPct=s.fat*9/kc,cPct=s.carb*4/kc;
+  if(fPct>0.45) out.push({l:'bad',t:'Muchas grasas'});
+  else if(cPct>0.75&&s.prot<15) out.push({l:'ok',t:'Casi todo hidratos'});
+  else out.push({l:'good',t:'Bien equilibrado'});
+  return out;
+}
 function renderHoy(){
   document.getElementById('todaySub').textContent=new Date().toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'short'});
   renderStreak();
@@ -500,14 +529,24 @@ function renderHoy(){
 
   const list=document.getElementById('mealList');
   if(m.length===0){list.innerHTML='<div class="empty"><svg class="big" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/></svg>Aún no has registrado nada hoy.<br>Pulsa «Añadir comida».</div>';return;}
-  list.innerHTML=m.map(e=>`
-    <div class="meal">
-      <div class="emoji">${e.emoji||'🍽️'}</div>
-      <div class="info"><div class="name">${esc(e.name)}</div>
-        <div class="macros">${r(e.carb)}g H · ${r(e.prot)}g P · ${r(e.fat)}g G${e.qty?' · '+e.qty:''}</div></div>
-      <div class="kc">${r(e.kcal)}</div>
-      <button class="del" onclick="delEntry('${e.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M6.5 7l.8 12a1.5 1.5 0 0 0 1.5 1.4h6.4a1.5 1.5 0 0 0 1.5-1.4l.8-12"/></svg></button>
-    </div>`).join('');
+  let html='';
+  MEALS.forEach(([k,label])=>{
+    const items=m.filter(e=>(e.meal||'comida')===k);
+    if(!items.length) return;
+    const s=sumMacros(items);
+    html+=`<div class="meal-group"><div class="meal-h"><span>${label}</span><b>${r(s.kcal)} kcal</b></div>`;
+    html+=`<div class="meal-eval">${evaluateMeal(s).map(v=>`<span class="ev ${v.l}">${v.t}</span>`).join('')}</div>`;
+    html+=items.map(e=>`
+      <div class="meal">
+        <div class="emoji">${e.emoji||'🍽️'}</div>
+        <div class="info"><div class="name">${esc(e.name)}</div>
+          <div class="macros">${r(e.carb)}g H · ${r(e.prot)}g P · ${r(e.fat)}g G${e.qty?' · '+e.qty:''}</div></div>
+        <div class="kc">${r(e.kcal)}</div>
+        <button class="del" onclick="delEntry('${e.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7M6.5 7l.8 12a1.5 1.5 0 0 0 1.5 1.4h6.4a1.5 1.5 0 0 0 1.5-1.4l.8-12"/></svg></button>
+      </div>`).join('');
+    html+=`</div>`;
+  });
+  list.innerHTML=html;
 }
 function delEntry(id){DB.log=DB.log.filter(e=>e.id!==id);save();renderHoy();}
 function esc(s){return String(s).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));}
@@ -554,8 +593,8 @@ function quickAdd(id){
   const p=DB.presets.find(x=>x.id===id);if(!p)return;
   const base=ubase(p);
   const label=base==='g'?'100 g':base==='ml'?'100 ml':base==='unit'?('1 '+uname(p)):'1 ración';
-  DB.log.push({id:uid(),date:today(),name:p.name,emoji:p.emoji,qty:label,kcal:p.kcal,carb:p.carb,prot:p.prot,fat:p.fat});
-  save();renderHoy();toast('✓ '+p.name);
+  DB.log.push({id:uid(),date:today(),meal:mealForTime(),name:p.name,emoji:p.emoji,qty:label,kcal:p.kcal,carb:p.carb,prot:p.prot,fat:p.fat,fiber:p.fiber||0});
+  save();renderHoy();toast('✓ '+p.name+' · '+mealLabel(mealForTime()));
 }
 
 /* ---------- ADD PICKER ---------- */
@@ -575,30 +614,32 @@ function presetRow(p,picker){
             :`<button class="edit" onclick="openPresetForm('${p.id}')">✏️</button><button class="add" onclick="chooseQty('${p.id}')">＋</button>`}
   </div>`;
 }
-let qtyP=null,qtyBase='g';
+let qtyP=null,qtyBase='g',qtyMeal='comida';
+function pickMeal(k){qtyMeal=k;document.querySelectorAll('#mealSeg button').forEach(b=>b.classList.toggle('sel',b.dataset.m===k));}
 function chooseQty(id){
   const p=DB.presets.find(x=>x.id===id);if(!p)return;
   closeModal('modalPicker');
-  qtyP=p;qtyBase=ubase(p);
+  qtyP=p;qtyBase=ubase(p);qtyMeal=mealForTime();
   document.getElementById('addTitle').textContent=p.name;
   const body=document.getElementById('addBody');
-  let html='';
+  const mealSeg=`<label>¿En qué comida?</label><div class="meal-seg" id="mealSeg">${MEALS.map(([k,l])=>`<button class="${k===qtyMeal?'sel':''}" data-m="${k}" onclick="pickMeal('${k}')">${l}</button>`).join('')}</div>`;
+  let html=mealSeg;
   if(qtyBase==='g'||qtyBase==='ml'){
     const u=qtyBase;
     const btns=[`<button class="qbtn" onclick="setQty(100)">100 ${u}</button>`];
     if(p.pkg) btns.push(`<button class="qbtn" onclick="setQty(${p.pkg})">Envase entero (${r(p.pkg)} ${u})</button>`);
-    html=`<label>Cantidad (${u})</label>
+    html+=`<label>Cantidad (${u})</label>
       <input id="qtyG" type="number" inputmode="decimal" value="100">
       <div class="qbtns">${btns.join('')}</div>`;
   } else if(qtyBase==='unit'){
     const nm=uname(p);
     const btns=[`<button class="qbtn" onclick="setQty(1)">1 ${nm}</button>`];
     if(p.pkg) btns.push(`<button class="qbtn" onclick="setQty(${p.pkg})">Paquete entero (${r(p.pkg)} ${plur(nm,p.pkg)})</button>`);
-    html=`<label>Nº de ${plur(nm,2)}</label>
+    html+=`<label>Nº de ${plur(nm,2)}</label>
       <input id="qtyN" type="number" inputmode="decimal" value="1" step="1">
       <div class="qbtns">${btns.join('')}</div>`;
   } else {
-    html=`<label>Nº de raciones</label>
+    html+=`<label>Nº de raciones</label>
       <input id="qtyN" type="number" inputmode="decimal" value="1" step="0.5">`;
   }
   body.innerHTML=`${html}
@@ -620,8 +661,8 @@ function updQty(){
 function confirmAdd(id){
   const p=DB.presets.find(x=>x.id===id);if(!p)return;
   const {f,label}=qtyFactor();
-  DB.log.push({id:uid(),date:today(),name:p.name,emoji:p.emoji,qty:label,kcal:p.kcal*f,carb:p.carb*f,prot:p.prot*f,fat:p.fat*f});
-  save();closeModal('modalAdd');go('hoy');toast('✓ Añadido a hoy');
+  DB.log.push({id:uid(),date:today(),meal:qtyMeal,name:p.name,emoji:p.emoji,qty:label,kcal:p.kcal*f,carb:p.carb*f,prot:p.prot*f,fat:p.fat*f,fiber:(p.fiber||0)*f});
+  save();closeModal('modalAdd');go('hoy');toast('✓ Añadido a '+mealLabel(qtyMeal));
 }
 
 /* ---------- PRESETS (Mis platos) ---------- */
@@ -654,6 +695,7 @@ function openPresetForm(id){
   document.getElementById('fCarb').value=p?p.carb:'';
   document.getElementById('fProt').value=p?p.prot:'';
   document.getElementById('fFat').value=p?p.fat:'';
+  document.getElementById('fFib').value=p&&p.fiber?p.fiber:'';
   selEmoji=p?p.emoji:'🍽️';
   document.getElementById('emojiPick').innerHTML=EMOJIS.map(e=>`<button class="${e===selEmoji?'sel':''}" onclick="pickEmoji('${e}',this)">${e}</button>`).join('');
   document.getElementById('delPresetBtn').style.display=p?'block':'none';
@@ -669,7 +711,8 @@ function savePreset(){
   const unitName=(document.getElementById('fUnitName').value||'').trim();
   const data={name,emoji:selEmoji,unit,pkg:pkg||null,unitName:(unit==='unit'?(unitName||'unidad'):null),
     kcal:+document.getElementById('fKcal').value||0,carb:+document.getElementById('fCarb').value||0,
-    prot:+document.getElementById('fProt').value||0,fat:+document.getElementById('fFat').value||0};
+    prot:+document.getElementById('fProt').value||0,fat:+document.getElementById('fFat').value||0,
+    fiber:+document.getElementById('fFib').value||0};
   if(editingId){Object.assign(DB.presets.find(x=>x.id===editingId),data);}
   else{DB.presets.unshift({id:uid(),...data});}
   save();closeModal('modalForm');renderPresets();toast('✓ Plato guardado');
@@ -707,7 +750,7 @@ let lastProduct=null,lastCode=null;
 async function lookup(code){
   toast('Analizando '+code+'…');
   try{
-    const fields='product_name,brands,nutriments,nutriscore_grade,nova_group,additives_tags,labels_tags,nutrient_levels,quantity,serving_size,product_quantity,product_quantity_unit';
+    const fields='product_name,brands,nutriments,nutriscore_grade,nova_group,additives_tags,labels_tags,nutrient_levels,quantity,serving_size,product_quantity,product_quantity_unit,fiber_100g';
     const res=await fetch(`https://world.openfoodfacts.org/api/v2/product/${code}.json?fields=${fields}`);
     const j=await res.json();
     if(j.status!==1||!j.product){toast('Producto no encontrado');return;}
@@ -809,7 +852,7 @@ function saveScannedProduct(){
   const name=[p.product_name,p.brands?('('+p.brands.split(',')[0]+')'):''].filter(Boolean).join(' ')||('Producto '+lastCode);
   const {base,pkg}=parsePkg(p);
   closeModal('modalQuality');
-  prefillFromProduct({name,unit:base,pkg,kcal:n['energy-kcal_100g']||0,carb:n['carbohydrates_100g']||0,prot:n['proteins_100g']||0,fat:n['fat_100g']||0});
+  prefillFromProduct({name,unit:base,pkg,kcal:n['energy-kcal_100g']||0,carb:n['carbohydrates_100g']||0,prot:n['proteins_100g']||0,fat:n['fat_100g']||0,fiber:n['fiber_100g']||0});
 }
 
 /* ---------- Fichas educativas de nutrientes ---------- */
@@ -880,6 +923,7 @@ function prefillFromProduct(d){
   document.getElementById('fCarb').value=r1(d.carb);
   document.getElementById('fProt').value=r1(d.prot);
   document.getElementById('fFat').value=r1(d.fat);
+  document.getElementById('fFib').value=d.fiber?r1(d.fiber):'';
   selEmoji='🛒';
   document.getElementById('emojiPick').innerHTML=EMOJIS.map(e=>`<button class="${e===selEmoji?'sel':''}" onclick="pickEmoji('${e}',this)">${e}</button>`).join('');
   document.getElementById('delPresetBtn').style.display='none';
