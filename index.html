@@ -260,6 +260,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
 .meal-seg{display:flex;gap:6px;background:var(--card2);border-radius:12px;padding:3px;margin-bottom:4px}
 .meal-seg button{flex:1;background:none;color:var(--muted);padding:9px 2px;border-radius:9px;font-weight:700;font-size:12.5px}
 .meal-seg button.sel{background:var(--accent);color:#fff}
+.pick-sub{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:700;margin:14px 2px 8px}
 </style>
 </head>
 <body>
@@ -597,12 +598,45 @@ function quickAdd(id){
   save();renderHoy();toast('✓ '+p.name+' · '+mealLabel(mealForTime()));
 }
 
+/* ---------- Catálogo de alimentos frescos (sin código de barras) ---------- */
+const FOODS=[
+  // Frutas
+  ['Manzana','🍎',52,14,0.3,0.2,2.4],['Plátano','🍌',89,23,1.1,0.3,2.6],['Naranja','🍊',47,12,0.9,0.1,2.4],
+  ['Mandarina','🍊',53,13,0.8,0.3,1.8],['Pera','🍐',57,15,0.4,0.1,3.1],['Fresas','🍓',32,7.7,0.7,0.3,2],
+  ['Uvas','🍇',69,18,0.7,0.2,0.9],['Sandía','🍉',30,8,0.6,0.2,0.4],['Melón','🍈',34,8,0.8,0.2,0.9],
+  ['Kiwi','🥝',61,15,1.1,0.5,3],['Piña','🍍',50,13,0.5,0.1,1.4],['Mango','🥭',60,15,0.8,0.4,1.6],
+  ['Melocotón','🍑',39,10,0.9,0.3,1.5],['Cerezas','🍒',63,16,1.1,0.2,2.1],['Ciruela','🍑',46,11,0.7,0.3,1.4],
+  ['Arándanos','🫐',57,14,0.7,0.3,2.4],['Frambuesas','🍓',52,12,1.2,0.7,6.5],['Aguacate','🥑',160,9,2,15,6.7],
+  ['Limón','🍋',29,9,1.1,0.3,2.8],['Granada','🍎',83,19,1.7,1.2,4],['Higos','🍈',74,19,0.8,0.3,2.9],
+  ['Dátiles','🌴',277,75,1.8,0.2,6.7],['Coco','🥥',354,15,3.3,33,9],
+  // Verduras
+  ['Tomate','🍅',18,3.9,0.9,0.2,1.2],['Zanahoria','🥕',41,10,0.9,0.2,2.8],['Lechuga','🥬',15,2.9,1.4,0.2,1.3],
+  ['Pepino','🥒',15,3.6,0.7,0.1,0.5],['Patata','🥔',77,17,2,0.1,2.2],['Boniato','🍠',86,20,1.6,0.1,3],
+  ['Cebolla','🧅',40,9,1.1,0.1,1.7],['Pimiento','🫑',31,6,1,0.3,2.1],['Brócoli','🥦',34,7,2.8,0.4,2.6],
+  ['Calabacín','🥒',17,3.1,1.2,0.3,1],['Champiñones','🍄',22,3.3,3.1,0.3,1],['Espinacas','🥬',23,3.6,2.9,0.4,2.2],
+  ['Maíz','🌽',86,19,3.3,1.2,2.7],['Ajo','🧄',149,33,6.4,0.5,2.1],
+  // Básicos
+  ['Huevo','🥚',155,1.1,13,11,0],['Pan','🍞',265,49,9,3.2,2.7],['Arroz cocido','🍚',130,28,2.4,0.3,0.4],
+  ['Pasta cocida','🍝',158,31,5.8,0.9,1.8],['Pechuga de pollo','🍗',165,0,31,3.6,0],['Ternera','🥩',250,0,26,15,0],
+  ['Salmón','🐟',208,0,20,13,0],['Atún al natural','🐟',116,0,26,1,0],['Almendras','🥜',579,22,21,50,12.5],
+  ['Nueces','🥜',654,14,15,65,6.7],['Leche entera','🥛',61,4.8,3.2,3.3,0],['Yogur natural','🥛',61,4.7,3.5,3.3,0],
+  ['Queso fresco','🧀',174,4,12,12,0],['Aceite de oliva','🫒',884,0,0,100,0],['Lentejas cocidas','🍲',116,20,9,0.4,7.9],
+  ['Garbanzos cocidos','🍲',164,27,8.9,2.6,7.6],['Tofu','🧈',76,1.9,8,4.8,0.3],['Avena','🥣',389,66,17,7,10.6],['Miel','🍯',304,82,0.3,0,0.2],
+].map((a,i)=>({id:'bf'+i,name:a[0],emoji:a[1],unit:'g',kcal:a[2],carb:a[3],prot:a[4],fat:a[5],fiber:a[6]}));
+function findFood(id){return DB.presets.find(x=>x.id===id)||FOODS.find(x=>x.id===id);}
+
 /* ---------- ADD PICKER ---------- */
 function openAddPicker(){document.getElementById('pickerSearch').value='';renderPicker();openModal('modalPicker');}
 function renderPicker(){
   const q=document.getElementById('pickerSearch').value.toLowerCase();
-  const list=DB.presets.filter(p=>p.name.toLowerCase().includes(q));
-  document.getElementById('pickerList').innerHTML=list.map(p=>presetRow(p,true)).join('')||'<div class="empty">Sin resultados</div>';
+  const mine=DB.presets.filter(p=>p.name.toLowerCase().includes(q));
+  const foods=FOODS.filter(f=>f.name.toLowerCase().includes(q));
+  let html=mine.map(p=>presetRow(p,true)).join('');
+  if(foods.length){
+    html+=`<div class="pick-sub">Alimentos frescos (frutas, verduras, básicos)</div>`;
+    html+=foods.map(f=>presetRow(f,true)).join('');
+  }
+  document.getElementById('pickerList').innerHTML=html||'<div class="empty">Sin resultados</div>';
 }
 function presetRow(p,picker){
   const per=perShort(p);
@@ -617,7 +651,7 @@ function presetRow(p,picker){
 let qtyP=null,qtyBase='g',qtyMeal='comida';
 function pickMeal(k){qtyMeal=k;document.querySelectorAll('#mealSeg button').forEach(b=>b.classList.toggle('sel',b.dataset.m===k));}
 function chooseQty(id){
-  const p=DB.presets.find(x=>x.id===id);if(!p)return;
+  const p=findFood(id);if(!p)return;
   closeModal('modalPicker');
   qtyP=p;qtyBase=ubase(p);qtyMeal=mealForTime();
   document.getElementById('addTitle').textContent=p.name;
@@ -659,7 +693,7 @@ function updQty(){
   document.getElementById('qtyPreview').innerHTML=`Se registrará: <b>${r(p.kcal*f)} kcal</b> · ${r(p.carb*f)}g H · ${r(p.prot*f)}g P · ${r(p.fat*f)}g G`;
 }
 function confirmAdd(id){
-  const p=DB.presets.find(x=>x.id===id);if(!p)return;
+  const p=findFood(id);if(!p)return;
   const {f,label}=qtyFactor();
   DB.log.push({id:uid(),date:today(),meal:qtyMeal,name:p.name,emoji:p.emoji,qty:label,kcal:p.kcal*f,carb:p.carb*f,prot:p.prot*f,fat:p.fat*f,fiber:(p.fiber||0)*f});
   save();closeModal('modalAdd');go('hoy');toast('✓ Añadido a '+mealLabel(qtyMeal));
@@ -847,11 +881,28 @@ function parsePkg(p){
   if(u==='l'||u==='litro') n*=1000; else if(u==='cl') n*=10; else if(u==='kg') n*=1000;
   return {base,pkg:Math.round(n)||0};
 }
+function detectPiece(p){
+  const ss=(p.serving_size||'');
+  const m=ss.match(/(?:([\d.,]+)\s*)?(galleta|biscuit|cookie|unidad|pieza|loncha|rebanada|barrita|onza|tableta|vaso)s?\b[^()]*(?:\(\s*([\d.,]+)\s*g)?/i);
+  if(!m) return null;
+  const count=m[1]?parseFloat(m[1].replace(',','.')):1;
+  let grams=m[3]?parseFloat(m[3].replace(',','.')):0;
+  if(grams&&count>0) grams=grams/count;
+  const names={galleta:'galleta',biscuit:'galleta',cookie:'galleta',unidad:'unidad',pieza:'pieza',loncha:'loncha',rebanada:'rebanada',barrita:'barrita',onza:'onza',tableta:'onza',vaso:'vaso'};
+  return {name:names[m[2].toLowerCase()]||'unidad',grams:grams||0};
+}
 function saveScannedProduct(){
   const p=lastProduct,n=p.nutriments||{};
   const name=[p.product_name,p.brands?('('+p.brands.split(',')[0]+')'):''].filter(Boolean).join(' ')||('Producto '+lastCode);
   const {base,pkg}=parsePkg(p);
   closeModal('modalQuality');
+  const piece=detectPiece(p);
+  if(piece&&piece.grams>0){
+    const f=piece.grams/100; // por pieza a partir de por 100g
+    prefillFromProduct({name,unit:'unit',unitName:piece.name,pkg:pkg?Math.round(pkg/piece.grams):0,
+      kcal:(n['energy-kcal_100g']||0)*f,carb:(n['carbohydrates_100g']||0)*f,prot:(n['proteins_100g']||0)*f,fat:(n['fat_100g']||0)*f,fiber:(n['fiber_100g']||0)*f});
+    return;
+  }
   prefillFromProduct({name,unit:base,pkg,kcal:n['energy-kcal_100g']||0,carb:n['carbohydrates_100g']||0,prot:n['proteins_100g']||0,fat:n['fat_100g']||0,fiber:n['fiber_100g']||0});
 }
 
@@ -917,7 +968,7 @@ function prefillFromProduct(d){
   document.getElementById('fName').value=d.name;
   document.getElementById('fUnit').value=d.unit||'g';
   document.getElementById('fPkg').value=d.pkg||'';
-  document.getElementById('fUnitName').value='';
+  document.getElementById('fUnitName').value=d.unitName||'';
   onUnitChange();
   document.getElementById('fKcal').value=r1(d.kcal);
   document.getElementById('fCarb').value=r1(d.carb);
