@@ -353,6 +353,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
         <button class="btn mt" onclick="saveGoals()">Guardar objetivos</button>
         <button class="link mt" style="display:block;margin:16px auto 0" onclick="exportData()">Exportar mis datos (copia de seguridad)</button>
         <button class="link" style="display:block;margin:12px auto 0" onclick="openOnboard()">Ver el tutorial otra vez</button>
+        <div style="text-align:center;color:var(--muted);font-size:11px;margin-top:14px;opacity:.7">NutriApp v7 · frescos + pavo/pan</div>
       </div>
     </section>
   </main>
@@ -616,8 +617,8 @@ const FOODS=[
   ['Calabacín','🥒',17,3.1,1.2,0.3,1],['Champiñones','🍄',22,3.3,3.1,0.3,1],['Espinacas','🥬',23,3.6,2.9,0.4,2.2],
   ['Maíz','🌽',86,19,3.3,1.2,2.7],['Ajo','🧄',149,33,6.4,0.5,2.1],
   // Básicos
-  ['Huevo','🥚',155,1.1,13,11,0],['Pan','🍞',265,49,9,3.2,2.7],['Arroz cocido','🍚',130,28,2.4,0.3,0.4],
-  ['Pasta cocida','🍝',158,31,5.8,0.9,1.8],['Pechuga de pollo','🍗',165,0,31,3.6,0],['Ternera','🥩',250,0,26,15,0],
+  ['Huevo','🥚',155,1.1,13,11,0],['Pan blanco','🍞',265,49,9,3.2,2.7],['Pan integral','🍞',247,41,13,3.4,7],['Arroz cocido','🍚',130,28,2.4,0.3,0.4],
+  ['Pasta cocida','🍝',158,31,5.8,0.9,1.8],['Pechuga de pollo','🍗',165,0,31,3.6,0],['Pavo (pechuga)','🦃',104,0,24,1,0],['Ternera','🥩',250,0,26,15,0],
   ['Salmón','🐟',208,0,20,13,0],['Atún al natural','🐟',116,0,26,1,0],['Almendras','🥜',579,22,21,50,12.5],
   ['Nueces','🥜',654,14,15,65,6.7],['Leche entera','🥛',61,4.8,3.2,3.3,0],['Yogur natural','🥛',61,4.7,3.5,3.3,0],
   ['Queso fresco','🧀',174,4,12,12,0],['Aceite de oliva','🫒',884,0,0,100,0],['Lentejas cocidas','🍲',116,20,9,0.4,7.9],
@@ -702,8 +703,18 @@ function confirmAdd(id){
 /* ---------- PRESETS (Mis platos) ---------- */
 function renderPresets(){
   const q=(document.getElementById('presetSearch').value||'').toLowerCase();
-  const list=DB.presets.filter(p=>p.name.toLowerCase().includes(q));
-  document.getElementById('presetList').innerHTML=list.map(p=>presetRow(p,false)).join('')||'<div class="empty">No tienes platos. Crea uno abajo.</div>';
+  const mine=DB.presets.filter(p=>p.name.toLowerCase().includes(q));
+  const foods=q?FOODS.filter(f=>f.name.toLowerCase().includes(q)):[];
+  let html=mine.map(p=>presetRow(p,false)).join('');
+  if(foods.length){
+    html+=`<div class="pick-sub">Alimentos frescos · pulsa ＋ para guardarlo como plato</div>`;
+    html+=foods.map(f=>`<div class="preset"><div class="emoji">${f.emoji}</div>
+      <div class="info"><div class="name">${esc(f.name)}</div>
+        <div class="macros">${r(f.kcal)} kcal /100g · ${r(f.carb)}H ${r(f.prot)}P ${r(f.fat)}G</div></div>
+      <button class="add" onclick="prefillFoodForm('${f.id}')">＋</button></div>`).join('');
+  }
+  if(!html) html='<div class="empty">No tienes platos. Crea uno abajo o busca un alimento fresco.</div>';
+  document.getElementById('presetList').innerHTML=html;
 }
 const EMOJIS=['🍽️','🍳','🍝','🍗','🍌','🥗','🍚','🍔','🌮','🥪','🍕','🥩','🐟','🥘','🍲','🥛','🍎','☕','🧀','🥚'];
 let editingId=null;
@@ -737,6 +748,25 @@ function openPresetForm(id){
 }
 let selEmoji='🍽️';
 function pickEmoji(e,el){selEmoji=e;document.querySelectorAll('#emojiPick button').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');}
+function prefillFoodForm(id){
+  const f=FOODS.find(x=>x.id===id);if(!f)return;
+  editingId=null;
+  document.getElementById('formTitle').textContent='Nuevo plato';
+  document.getElementById('fName').value=f.name;
+  document.getElementById('fUnit').value='g';
+  document.getElementById('fPkg').value='';
+  document.getElementById('fUnitName').value='';
+  onUnitChange();
+  document.getElementById('fKcal').value=f.kcal;
+  document.getElementById('fCarb').value=f.carb;
+  document.getElementById('fProt').value=f.prot;
+  document.getElementById('fFat').value=f.fat;
+  document.getElementById('fFib').value=f.fiber||'';
+  selEmoji=f.emoji;
+  document.getElementById('emojiPick').innerHTML=EMOJIS.map(e=>`<button class="${e===selEmoji?'sel':''}" onclick="pickEmoji('${e}',this)">${e}</button>`).join('');
+  document.getElementById('delPresetBtn').style.display='none';
+  openModal('modalForm');
+}
 function savePreset(){
   const name=document.getElementById('fName').value.trim();
   if(!name){toast('Ponle un nombre');return;}
