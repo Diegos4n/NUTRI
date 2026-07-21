@@ -353,7 +353,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
         <button class="btn mt" onclick="saveGoals()">Guardar objetivos</button>
         <button class="link mt" style="display:block;margin:16px auto 0" onclick="exportData()">Exportar mis datos (copia de seguridad)</button>
         <button class="link" style="display:block;margin:12px auto 0" onclick="openOnboard()">Ver el tutorial otra vez</button>
-        <div style="text-align:center;color:var(--muted);font-size:11px;margin-top:14px;opacity:.7">NutriApp v7 · frescos + pavo/pan</div>
+        <div style="text-align:center;color:var(--muted);font-size:11px;margin-top:14px;opacity:.7">NutriApp v8 · pan con pavo</div>
       </div>
     </section>
   </main>
@@ -623,7 +623,11 @@ const FOODS=[
   ['Nueces','🥜',654,14,15,65,6.7],['Leche entera','🥛',61,4.8,3.2,3.3,0],['Yogur natural','🥛',61,4.7,3.5,3.3,0],
   ['Queso fresco','🧀',174,4,12,12,0],['Aceite de oliva','🫒',884,0,0,100,0],['Lentejas cocidas','🍲',116,20,9,0.4,7.9],
   ['Garbanzos cocidos','🍲',164,27,8.9,2.6,7.6],['Tofu','🧈',76,1.9,8,4.8,0.3],['Avena','🥣',389,66,17,7,10.6],['Miel','🍯',304,82,0.3,0,0.2],
-].map((a,i)=>({id:'bf'+i,name:a[0],emoji:a[1],unit:'g',kcal:a[2],carb:a[3],prot:a[4],fat:a[5],fiber:a[6]}));
+].map(a=>({name:a[0],emoji:a[1],unit:'g',kcal:a[2],carb:a[3],prot:a[4],fat:a[5],fiber:a[6]}))
+ .concat([
+  // Combinaciones típicas (por ración)
+  {name:'Pan con pavo (desayuno)',emoji:'🥪',unit:'serving',kcal:206,carb:29,prot:16,fat:2.4,fiber:1.6},
+ ]).map((f,i)=>({...f,id:'bf'+i}));
 function findFood(id){return DB.presets.find(x=>x.id===id)||FOODS.find(x=>x.id===id);}
 
 /* ---------- ADD PICKER ---------- */
@@ -753,9 +757,9 @@ function prefillFoodForm(id){
   editingId=null;
   document.getElementById('formTitle').textContent='Nuevo plato';
   document.getElementById('fName').value=f.name;
-  document.getElementById('fUnit').value='g';
+  document.getElementById('fUnit').value=f.unit||'g';
   document.getElementById('fPkg').value='';
-  document.getElementById('fUnitName').value='';
+  document.getElementById('fUnitName').value=f.unitName||'';
   onUnitChange();
   document.getElementById('fKcal').value=f.kcal;
   document.getElementById('fCarb').value=f.carb;
