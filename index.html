@@ -275,6 +275,7 @@ nav .tab-add .fab{transition:transform .15s,background .2s}
 .add-big .ab-txt b{font-size:18px;font-weight:800}
 .add-big .ab-txt small{font-size:13px;opacity:.92;margin-top:2px}
 .add-big:active{transform:scale(.99)}
+.ai-hint{color:var(--muted);font-size:13px;line-height:1.45;margin:0 0 12px}
 </style>
 </head>
 <body>
@@ -335,6 +336,19 @@ nav .tab-add .fab{transition:transform .15s,background .2s}
         <span class="ab-txt"><b>Nuevo plato</b><small>Créalo a mano</small></span>
       </button>
       <div class="card">
+        <h2>Analizar con IA</h2>
+        <p class="ai-hint">Haz una foto al plato o descríbelo, y la IA estima sus valores (aproximados).</p>
+        <input type="file" id="aiPhoto" accept="image/*" capture="environment" style="display:none" onchange="analyzeImage(this.files[0])">
+        <button class="btn sec" onclick="document.getElementById('aiPhoto').click()">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A2 2 0 0 1 5 6.5h1.6l1-1.6h4.8l1 1.6H19a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="12.5" r="3.3"/></svg>
+          Foto al plato</button>
+        <label style="margin-top:16px">…o descríbelo con texto</label>
+        <div class="row-btns">
+          <input id="aiText" placeholder="ej. 2 pechugas de pavo y un muslo de pollo">
+          <button class="btn small" onclick="analyzeText()">Analizar</button>
+        </div>
+      </div>
+      <div class="card">
         <h2>Escanear envase</h2>
         <div id="reader"></div>
         <p class="scan-hint" id="scanHint">Apunta al código de barras del producto</p>
@@ -370,9 +384,19 @@ nav .tab-add .fab{transition:transform .15s,background .2s}
           <div><label>Grasas g</label><input id="gFat" type="number" inputmode="numeric"></div>
         </div>
         <button class="btn mt" onclick="saveGoals()">Guardar objetivos</button>
-        <button class="link mt" style="display:block;margin:16px auto 0" onclick="exportData()">Exportar mis datos (copia de seguridad)</button>
+      </div>
+      <div class="card">
+        <h2>Análisis por IA (foto / texto)</h2>
+        <p class="ai-hint">Pega aquí la URL de tu Worker de Cloudflare para activar el análisis por foto y texto.</p>
+        <div class="row-btns">
+          <input id="aiUrl" placeholder="https://nutriapp-vision.tu-sub.workers.dev">
+          <button class="btn small" onclick="saveAiUrl()">Guardar</button>
+        </div>
+      </div>
+      <div class="card">
+        <button class="link" style="display:block;margin:0 auto" onclick="exportData()">Exportar mis datos (copia de seguridad)</button>
         <button class="link" style="display:block;margin:12px auto 0" onclick="openOnboard()">Ver el tutorial otra vez</button>
-        <div style="text-align:center;color:var(--muted);font-size:11px;margin-top:14px;opacity:.7">NutriApp v9 · Añadir + Mis platos en Hoy</div>
+        <div style="text-align:center;color:var(--muted);font-size:11px;margin-top:14px;opacity:.7">NutriApp v10 · análisis IA foto/texto</div>
       </div>
     </section>
   </main>
@@ -454,6 +478,14 @@ nav .tab-add .fab{transition:transform .15s,background .2s}
   <div class="modal">
     <h3><span id="infoTitle">Nutriente</span><button class="x" onclick="closeModal('modalInfo')">✕</button></h3>
     <div id="infoBody"></div>
+  </div>
+</div>
+
+<!-- MODAL: resultado análisis IA -->
+<div class="modal-bg" id="modalAi">
+  <div class="modal">
+    <h3>Análisis con IA<button class="x" onclick="closeModal('modalAi')">✕</button></h3>
+    <div id="aiBody"></div>
   </div>
 </div>
 
@@ -817,6 +849,72 @@ function deletePreset(){
   DB.presets=DB.presets.filter(x=>x.id!==editingId);save();closeModal('modalForm');refreshPlatos();renderQuick();toast('Plato eliminado');
 }
 
+/* ---------- Análisis por IA (foto / texto) ---------- */
+let AI_URL=load('na_ai_url','');
+function saveAiUrl(){AI_URL=(document.getElementById('aiUrl').value||'').trim();localStorage.setItem('na_ai_url',JSON.stringify(AI_URL));toast(AI_URL?'✓ Worker guardado':'URL borrada');}
+let aiResult=null,aiMeal='comida';
+async function callAI(payload){
+  if(!AI_URL){toast('Configura tu Worker en Stats');go('stats');return null;}
+  toast('Analizando con IA…');
+  try{
+    const res=await fetch(AI_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const j=await res.json();
+    if(!res.ok||j.error){toast('Error de la IA');return null;}
+    return j;
+  }catch(e){toast('No se pudo conectar con el Worker');return null;}
+}
+function analyzeText(){
+  const t=(document.getElementById('aiText').value||'').trim();
+  if(!t){toast('Escribe qué has comido');return;}
+  callAI({text:t}).then(j=>{if(j)showAiResult(j,'texto');});
+}
+function analyzeImage(file){
+  if(!file)return;
+  if(!AI_URL){toast('Configura tu Worker en Stats');go('stats');return;}
+  const rd=new FileReader();
+  rd.onload=()=>{const img=new Image();img.onload=()=>{
+    const max=1024,scale=Math.min(1,max/Math.max(img.width,img.height));
+    const c=document.createElement('canvas');c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height);
+    const data=c.toDataURL('image/jpeg',0.8).split(',')[1];
+    callAI({image:data,mime:'image/jpeg'}).then(j=>{if(j)showAiResult(j,'foto');});
+  };img.src=rd.result;};
+  rd.readAsDataURL(file);
+  document.getElementById('aiPhoto').value='';
+}
+function showAiResult(d,src){
+  aiResult={name:d.nombre||'Plato',kcal:+d.kcal||0,carb:+d.carbohidratos_g||0,prot:+d.proteinas_g||0,fat:+d.grasas_g||0,fiber:+d.fibra_g||0,conf:d.confianza||''};
+  aiMeal=mealForTime();
+  const a=aiResult;
+  document.getElementById('aiBody').innerHTML=`
+    <div class="q-head"><div class="q-score" style="background:var(--accent);font-size:19px">IA</div>
+      <div class="q-head-txt"><div class="q-cat" style="color:var(--txt);font-size:18px">${esc(a.name)}</div>
+      <div class="q-name">${a.conf?('confianza '+a.conf+' · '):''}estimación aproximada</div></div></div>
+    <div class="q-nutri">
+      <div class="qn-tile kcal"><b>${r(a.kcal)}</b><span>kcal</span></div>
+      <div class="qn-tile"><b>${r(a.carb)}g</b><span><i style="background:var(--carb)"></i>Hidratos</span></div>
+      <div class="qn-tile"><b>${r(a.prot)}g</b><span><i style="background:var(--prot)"></i>Proteína</span></div>
+      <div class="qn-tile"><b>${r(a.fat)}g</b><span><i style="background:var(--fat)"></i>Grasas</span></div>
+    </div>
+    <label style="margin-top:16px">¿En qué comida?</label>
+    <div class="meal-seg" id="aiMealSeg">${MEALS.map(([k,l])=>`<button class="${k===aiMeal?'sel':''}" data-m="${k}" onclick="pickAiMeal('${k}')">${l}</button>`).join('')}</div>
+    <button class="btn mt" onclick="addAiToToday()">Añadir a hoy</button>
+    <button class="btn sec mt" onclick="saveAiAsPlato()">Guardar como plato</button>
+    <div class="q-disc">Valores estimados por IA a partir de la ${src}. Revísalos: pueden variar ±20-40%.</div>`;
+  openModal('modalAi');
+}
+function pickAiMeal(k){aiMeal=k;document.querySelectorAll('#aiMealSeg button').forEach(b=>b.classList.toggle('sel',b.dataset.m===k));}
+function addAiToToday(){
+  const a=aiResult;if(!a)return;
+  DB.log.push({id:uid(),date:today(),meal:aiMeal,name:a.name,emoji:'✨',qty:'ración (IA)',kcal:a.kcal,carb:a.carb,prot:a.prot,fat:a.fat,fiber:a.fiber});
+  save();closeModal('modalAi');go('hoy');toast('✓ Añadido a '+mealLabel(aiMeal));
+}
+function saveAiAsPlato(){
+  const a=aiResult;if(!a)return;closeModal('modalAi');
+  prefillFromProduct({name:a.name,unit:'serving',kcal:a.kcal,carb:a.carb,prot:a.prot,fat:a.fat,fiber:a.fiber});
+  document.getElementById('formTitle').textContent='Nuevo plato (IA)';
+}
+
 /* ---------- SCANNER ---------- */
 let scanner=null,scanning=false;
 function toggleScan(){scanning?stopScan():startScan();}
@@ -1053,6 +1151,7 @@ function renderStats(){
   document.getElementById('gCarb').value=DB.goals.carb;
   document.getElementById('gProt').value=DB.goals.prot;
   document.getElementById('gFat').value=DB.goals.fat;
+  document.getElementById('aiUrl').value=AI_URL||'';
   const body=document.getElementById('statsBody');
   const g=DB.goals;
   if(statRange==='day'){
