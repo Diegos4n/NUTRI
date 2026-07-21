@@ -261,6 +261,20 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
 .meal-seg button{flex:1;background:none;color:var(--muted);padding:9px 2px;border-radius:9px;font-weight:700;font-size:12.5px}
 .meal-seg button.sel{background:var(--accent);color:#fff}
 .pick-sub{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:700;margin:14px 2px 8px}
+
+/* nav central + */
+nav .tab-add{position:relative}
+nav .tab-add .fab{display:flex;align-items:center;justify-content:center;width:54px;height:54px;border-radius:50%;background:var(--accent);color:#fff;font-size:32px;line-height:1;margin-top:-16px;box-shadow:0 8px 18px -4px rgba(31,157,85,.65)}
+nav .tab-add.active .fab{background:var(--accent-d);transform:scale(1.05)}
+nav .tab-add .fab{transition:transform .15s,background .2s}
+
+/* big green add box */
+.add-big{width:100%;background:linear-gradient(155deg,#22a85c,#178a49);color:#fff;border:none;border-radius:20px;padding:20px;display:flex;align-items:center;gap:15px;margin-bottom:14px;box-shadow:0 14px 28px -12px rgba(31,157,85,.7)}
+.add-big .ab-plus{width:52px;height:52px;border-radius:15px;background:rgba(255,255,255,.22);display:flex;align-items:center;justify-content:center;font-size:32px;flex-shrink:0}
+.add-big .ab-txt{display:flex;flex-direction:column;text-align:left}
+.add-big .ab-txt b{font-size:18px;font-weight:800}
+.add-big .ab-txt small{font-size:13px;opacity:.92;margin-top:2px}
+.add-big:active{transform:scale(.99)}
 </style>
 </head>
 <body>
@@ -307,19 +321,19 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
       </div>
 
       <button class="btn" onclick="openAddPicker()">＋ Añadir comida</button>
-    </section>
 
-    <!-- ===== MIS PLATOS ===== -->
-    <section class="view" id="view-platos">
-      <div class="card" style="margin-bottom:12px">
-        <input id="presetSearch" placeholder="Buscar plato…" oninput="renderPresets()">
+      <div class="card" id="myPlatosCard" style="margin-top:14px">
+        <h2>Mis platos</h2>
+        <div id="myPlatosList"></div>
       </div>
-      <div id="presetList"></div>
-      <button class="btn mt" onclick="openPresetForm()">＋ Nuevo plato</button>
     </section>
 
-    <!-- ===== ESCANEAR ===== -->
-    <section class="view" id="view-scan">
+    <!-- ===== AÑADIR (escáner + nuevo plato fusionados) ===== -->
+    <section class="view" id="view-add">
+      <button class="add-big" onclick="openPresetForm()">
+        <span class="ab-plus">＋</span>
+        <span class="ab-txt"><b>Nuevo plato</b><small>Créalo a mano</small></span>
+      </button>
       <div class="card">
         <h2>Escanear envase</h2>
         <div id="reader"></div>
@@ -332,6 +346,11 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
           <input id="manualCode" inputmode="numeric" placeholder="ej. 8410000810004">
           <button class="btn small" onclick="lookupManual()">Buscar</button>
         </div>
+      </div>
+      <div class="card">
+        <h2>Buscar alimento y guardarlo</h2>
+        <input id="addSearch" placeholder="fruta, pavo, pan, yogur…" oninput="renderAddSearch()">
+        <div id="addSearchList" style="margin-top:10px"></div>
       </div>
     </section>
 
@@ -353,7 +372,7 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
         <button class="btn mt" onclick="saveGoals()">Guardar objetivos</button>
         <button class="link mt" style="display:block;margin:16px auto 0" onclick="exportData()">Exportar mis datos (copia de seguridad)</button>
         <button class="link" style="display:block;margin:12px auto 0" onclick="openOnboard()">Ver el tutorial otra vez</button>
-        <div style="text-align:center;color:var(--muted);font-size:11px;margin-top:14px;opacity:.7">NutriApp v8 · pan con pavo</div>
+        <div style="text-align:center;color:var(--muted);font-size:11px;margin-top:14px;opacity:.7">NutriApp v9 · Añadir + Mis platos en Hoy</div>
       </div>
     </section>
   </main>
@@ -363,10 +382,8 @@ input:focus,select:focus{outline:none;border-color:var(--accent)}
 <nav>
   <button class="tab active" data-v="hoy" onclick="go('hoy')">
     <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3v6a2.2 2.2 0 0 0 4.4 0V3"/><path d="M7.2 11v10"/><path d="M17.5 3c-1.6 0-2.8 2.2-2.8 5s.9 4.3 2.8 4.3"/><path d="M17.5 12.3V21"/></svg>Hoy</button>
-  <button class="tab" data-v="platos" onclick="go('platos')">
-    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><circle cx="4.5" cy="6" r="1.2"/><circle cx="4.5" cy="12" r="1.2"/><circle cx="4.5" cy="18" r="1.2"/></svg>Mis platos</button>
-  <button class="tab" data-v="scan" onclick="go('scan')">
-    <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V6a3 3 0 0 1 3-3h2M21 8V6a3 3 0 0 0-3-3h-2M3 16v2a3 3 0 0 0 3 3h2M21 16v2a3 3 0 0 1-3 3h-2"/><path d="M3 12h18"/></svg>Escanear</button>
+  <button class="tab tab-add" data-v="add" onclick="go('add')" aria-label="Añadir">
+    <span class="fab">＋</span></button>
   <button class="tab" data-v="stats" onclick="go('stats')">
     <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 20v-6M12 20V8M18 20v-9"/></svg>Stats</button>
 </nav>
@@ -483,13 +500,13 @@ function r1(n){return Math.round(n*10)/10;}
 /* ---------- Navigation ---------- */
 let current='hoy';
 function go(v){
-  if(current==='scan'&&v!=='scan') stopScan();
+  if(current==='add'&&v!=='add') stopScan();
   current=v;
   document.querySelectorAll('.view').forEach(s=>s.classList.remove('active'));
   document.getElementById('view-'+v).classList.add('active');
   document.querySelectorAll('nav .tab').forEach(t=>t.classList.toggle('active',t.dataset.v===v));
   if(v==='hoy')renderHoy();
-  if(v==='platos')renderPresets();
+  if(v==='add'){document.getElementById('addSearch').value='';renderAddSearch();}
   if(v==='stats')renderStats();
 }
 
@@ -528,6 +545,7 @@ function renderHoy(){
   document.getElementById('pBar').style.width=Math.min(100,s.prot/g.prot*100)+'%';
   document.getElementById('fBar').style.width=Math.min(100,s.fat/g.fat*100)+'%';
   renderQuick();
+  renderMyPlatos();
 
   const list=document.getElementById('mealList');
   if(m.length===0){list.innerHTML='<div class="empty"><svg class="big" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/></svg>Aún no has registrado nada hoy.<br>Pulsa «Añadir comida».</div>';return;}
@@ -704,21 +722,30 @@ function confirmAdd(id){
   save();closeModal('modalAdd');go('hoy');toast('✓ Añadido a '+mealLabel(qtyMeal));
 }
 
-/* ---------- PRESETS (Mis platos) ---------- */
-function renderPresets(){
-  const q=(document.getElementById('presetSearch').value||'').toLowerCase();
+/* ---------- Mis platos (gestión en Hoy) ---------- */
+function renderMyPlatos(){
+  const wrap=document.getElementById('myPlatosList');
+  if(!DB.presets.length){wrap.innerHTML='<div class="empty" style="padding:12px 6px;font-size:13px">Aún no tienes platos guardados. Créalos en «Añadir».</div>';return;}
+  wrap.innerHTML=DB.presets.map(p=>`<div class="preset">
+    <div class="emoji">${p.emoji||'🍽️'}</div>
+    <div class="info"><div class="name">${esc(p.name)}</div>
+      <div class="macros">${r(p.kcal)} kcal${perShort(p)} · ${r(p.carb)}H ${r(p.prot)}P ${r(p.fat)}G</div></div>
+    <button class="edit" onclick="openPresetForm('${p.id}')">✏️</button>
+    <button class="add" onclick="chooseQty('${p.id}')">＋</button>
+  </div>`).join('');
+}
+function refreshPlatos(){renderMyPlatos();renderAddSearch();}
+/* ---------- Buscar y guardar (pestaña Añadir) ---------- */
+function renderAddSearch(){
+  const q=(document.getElementById('addSearch').value||'').toLowerCase();
+  const list=document.getElementById('addSearchList');
+  if(!q){list.innerHTML='<div class="empty" style="padding:10px 6px;font-size:13px">Escribe para buscar frutas, verduras, básicos… y guardarlos como plato.</div>';return;}
   const mine=DB.presets.filter(p=>p.name.toLowerCase().includes(q));
-  const foods=q?FOODS.filter(f=>f.name.toLowerCase().includes(q)):[];
-  let html=mine.map(p=>presetRow(p,false)).join('');
-  if(foods.length){
-    html+=`<div class="pick-sub">Alimentos frescos · pulsa ＋ para guardarlo como plato</div>`;
-    html+=foods.map(f=>`<div class="preset"><div class="emoji">${f.emoji}</div>
-      <div class="info"><div class="name">${esc(f.name)}</div>
-        <div class="macros">${r(f.kcal)} kcal /100g · ${r(f.carb)}H ${r(f.prot)}P ${r(f.fat)}G</div></div>
-      <button class="add" onclick="prefillFoodForm('${f.id}')">＋</button></div>`).join('');
-  }
-  if(!html) html='<div class="empty">No tienes platos. Crea uno abajo o busca un alimento fresco.</div>';
-  document.getElementById('presetList').innerHTML=html;
+  const foods=FOODS.filter(f=>f.name.toLowerCase().includes(q));
+  let html='';
+  if(mine.length){html+=`<div class="pick-sub">Tus platos</div>`+mine.map(p=>`<div class="preset"><div class="emoji">${p.emoji||'🍽️'}</div><div class="info"><div class="name">${esc(p.name)}</div><div class="macros">${r(p.kcal)} kcal${perShort(p)}</div></div><button class="edit" onclick="openPresetForm('${p.id}')">✏️</button></div>`).join('');}
+  if(foods.length){html+=`<div class="pick-sub">Alimentos · pulsa ＋ para guardarlo como plato</div>`+foods.map(f=>`<div class="preset"><div class="emoji">${f.emoji}</div><div class="info"><div class="name">${esc(f.name)}</div><div class="macros">${r(f.kcal)} kcal${f.unit==='serving'?' /ración':' /100g'}</div></div><button class="add" onclick="prefillFoodForm('${f.id}')">＋</button></div>`).join('');}
+  list.innerHTML=html||'<div class="empty" style="padding:10px 6px;font-size:13px">Sin resultados</div>';
 }
 const EMOJIS=['🍽️','🍳','🍝','🍗','🍌','🥗','🍚','🍔','🌮','🥪','🍕','🥩','🐟','🥘','🍲','🥛','🍎','☕','🧀','🥚'];
 let editingId=null;
@@ -783,11 +810,11 @@ function savePreset(){
     fiber:+document.getElementById('fFib').value||0};
   if(editingId){Object.assign(DB.presets.find(x=>x.id===editingId),data);}
   else{DB.presets.unshift({id:uid(),...data});}
-  save();closeModal('modalForm');renderPresets();toast('✓ Plato guardado');
+  save();closeModal('modalForm');refreshPlatos();renderQuick();toast('✓ Plato guardado');
 }
 function deletePreset(){
   if(!editingId)return;
-  DB.presets=DB.presets.filter(x=>x.id!==editingId);save();closeModal('modalForm');renderPresets();toast('Plato eliminado');
+  DB.presets=DB.presets.filter(x=>x.id!==editingId);save();closeModal('modalForm');refreshPlatos();renderQuick();toast('Plato eliminado');
 }
 
 /* ---------- SCANNER ---------- */
