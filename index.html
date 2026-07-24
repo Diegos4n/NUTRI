@@ -388,17 +388,17 @@ nav .tab-add .fab{transition:transform .15s,background .2s}
         <button class="btn mt" onclick="saveGoals()">Guardar objetivos</button>
       </div>
       <div class="card">
-        <h2>Análisis por IA (foto / texto)</h2>
-        <p class="ai-hint">Pega aquí la URL de tu Worker de Cloudflare para activar el análisis por foto y texto.</p>
+        <h2>Análisis por IA (avanzado)</h2>
+        <p class="ai-hint">El análisis por foto y texto ya funciona sin configurar nada. Solo toca esto si usas tu propio servidor.</p>
         <div class="row-btns">
-          <input id="aiUrl" placeholder="https://nutriapp-vision.tu-sub.workers.dev">
+          <input id="aiUrl" placeholder="URL personalizada (opcional)">
           <button class="btn small" onclick="saveAiUrl()">Guardar</button>
         </div>
       </div>
       <div class="card">
         <button class="link" style="display:block;margin:0 auto" onclick="exportData()">Exportar mis datos (copia de seguridad)</button>
         <button class="link" style="display:block;margin:12px auto 0" onclick="openOnboard()">Ver el tutorial otra vez</button>
-        <div style="text-align:center;color:var(--muted);font-size:11px;margin-top:14px;opacity:.7">NutriApp v12 · nota por comida + almuerzo</div>
+        <div style="text-align:center;color:var(--muted);font-size:11px;margin-top:14px;opacity:.7">NutriApp v13 · IA integrada sin configurar</div>
       </div>
     </section>
   </main>
@@ -939,18 +939,25 @@ function deletePreset(){
 }
 
 /* ---------- Análisis por IA (foto / texto) ---------- */
-let AI_URL=load('na_ai_url','');
-function saveAiUrl(){AI_URL=(document.getElementById('aiUrl').value||'').trim();localStorage.setItem('na_ai_url',JSON.stringify(AI_URL));toast(AI_URL?'✓ Worker guardado':'URL borrada');}
+const AI_URL_DEFAULT='https://nutriapp-vision.diegosanel.workers.dev';
+let AI_URL=load('na_ai_url','')||AI_URL_DEFAULT;
+function saveAiUrl(){
+  const v=(document.getElementById('aiUrl').value||'').trim();
+  AI_URL=v||AI_URL_DEFAULT;
+  localStorage.setItem('na_ai_url',JSON.stringify(v));
+  toast('✓ Guardado');
+}
 let aiResult=null,aiMeal='comida';
 async function callAI(payload){
-  if(!AI_URL){toast('Configura tu Worker en Stats');go('stats');return null;}
+  if(!AI_URL){toast('IA no disponible ahora mismo');return null;}
   toast('Analizando con IA…');
   try{
     const res=await fetch(AI_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    if(res.status===429){toast('Límite diario de la IA alcanzado. Prueba mañana.');return null;}
     const j=await res.json();
-    if(!res.ok||j.error){toast('Error de la IA');return null;}
+    if(!res.ok||j.error){toast('Error de la IA, inténtalo de nuevo');return null;}
     return j;
-  }catch(e){toast('No se pudo conectar con el Worker');return null;}
+  }catch(e){toast('No se pudo conectar con la IA');return null;}
 }
 function analyzeText(){
   const t=(document.getElementById('aiText').value||'').trim();
@@ -959,7 +966,6 @@ function analyzeText(){
 }
 function analyzeImage(file){
   if(!file)return;
-  if(!AI_URL){toast('Configura tu Worker en Stats');go('stats');return;}
   const rd=new FileReader();
   rd.onload=()=>{const img=new Image();img.onload=()=>{
     const max=1024,scale=Math.min(1,max/Math.max(img.width,img.height));
@@ -1272,7 +1278,7 @@ function renderStats(){
   document.getElementById('gCarb').value=DB.goals.carb;
   document.getElementById('gProt').value=DB.goals.prot;
   document.getElementById('gFat').value=DB.goals.fat;
-  document.getElementById('aiUrl').value=AI_URL||'';
+  document.getElementById('aiUrl').value=(AI_URL!==AI_URL_DEFAULT)?AI_URL:'';
   const body=document.getElementById('statsBody');
   const g=DB.goals;
   if(statRange==='day'){
