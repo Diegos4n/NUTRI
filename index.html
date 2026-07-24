@@ -276,6 +276,22 @@ nav .tab-add .fab{transition:transform .15s,background .2s}
 .add-big .ab-txt small{font-size:13px;opacity:.92;margin-top:2px}
 .add-big:active{transform:scale(.99)}
 .ai-hint{color:var(--muted);font-size:13px;line-height:1.45;margin:0 0 12px}
+
+/* menú de opciones de Añadir */
+.add-h{font-size:19px;font-weight:800;letter-spacing:-.3px;margin:4px 2px 14px}
+.opt-list{display:flex;flex-direction:column;gap:12px}
+.opt{display:flex;align-items:center;gap:14px;width:100%;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px;text-align:left;box-shadow:0 6px 18px -12px rgba(90,70,30,.35);transition:transform .15s,border-color .15s}
+.opt:active{transform:scale(.985);border-color:var(--accent)}
+.opt-ic{width:50px;height:50px;border-radius:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.opt-ic svg{width:25px;height:25px;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.opt-ic.ai{background:rgba(31,157,85,.13)} .opt-ic.ai svg{stroke:var(--accent-d)}
+.opt-ic.scan{background:rgba(239,159,40,.16)} .opt-ic.scan svg{stroke:#b9761a}
+.opt-ic.find{background:rgba(56,163,209,.16)} .opt-ic.find svg{stroke:#2b7ea3}
+.opt-ic.hand{background:rgba(139,109,240,.15)} .opt-ic.hand svg{stroke:#6b52c9}
+.opt-t{display:flex;flex-direction:column;flex:1;min-width:0}
+.opt-t b{font-size:16px;font-weight:800;color:var(--txt)}
+.opt-t small{font-size:12.5px;color:var(--muted);margin-top:3px;line-height:1.3}
+.qbtn.port{border-color:rgba(31,157,85,.4);background:rgba(31,157,85,.08);color:var(--accent-d)}
 </style>
 </head>
 <body>
@@ -329,42 +345,26 @@ nav .tab-add .fab{transition:transform .15s,background .2s}
       </div>
     </section>
 
-    <!-- ===== AÑADIR (escáner + nuevo plato fusionados) ===== -->
+    <!-- ===== AÑADIR (menú de opciones) ===== -->
     <section class="view" id="view-add">
-      <button class="add-big" onclick="openPresetForm()">
-        <span class="ab-plus">＋</span>
-        <span class="ab-txt"><b>Nuevo plato</b><small>Créalo a mano</small></span>
-      </button>
-      <div class="card">
-        <h2>Analizar con IA</h2>
-        <p class="ai-hint">Haz una foto al plato o descríbelo, y la IA estima sus valores (aproximados).</p>
-        <input type="file" id="aiPhoto" accept="image/*" capture="environment" style="display:none" onchange="analyzeImage(this.files[0])">
-        <button class="btn sec" onclick="document.getElementById('aiPhoto').click()">
-          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A2 2 0 0 1 5 6.5h1.6l1-1.6h4.8l1 1.6H19a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="12.5" r="3.3"/></svg>
-          Foto al plato</button>
-        <label style="margin-top:16px">…o descríbelo con texto</label>
-        <div class="row-btns">
-          <input id="aiText" placeholder="ej. 2 pechugas de pavo y un muslo de pollo">
-          <button class="btn small" onclick="analyzeText()">Analizar</button>
-        </div>
-      </div>
-      <div class="card">
-        <h2>Escanear envase</h2>
-        <div id="reader"></div>
-        <p class="scan-hint" id="scanHint">Apunta al código de barras del producto</p>
-        <div class="row-btns">
-          <button class="btn sec small" id="scanToggle" onclick="toggleScan()" style="flex:1">▶ Iniciar cámara</button>
-        </div>
-        <label style="margin-top:16px">…o escribe el código a mano</label>
-        <div class="row-btns">
-          <input id="manualCode" inputmode="numeric" placeholder="ej. 8410000810004">
-          <button class="btn small" onclick="lookupManual()">Buscar</button>
-        </div>
-      </div>
-      <div class="card">
-        <h2>Buscar alimento y guardarlo</h2>
-        <input id="addSearch" placeholder="fruta, pavo, pan, yogur…" oninput="renderAddSearch()">
-        <div id="addSearchList" style="margin-top:10px"></div>
+      <h2 class="add-h">¿Cómo quieres añadirlo?</h2>
+      <div class="opt-list">
+        <button class="opt" onclick="openModal('modalAiIn')">
+          <span class="opt-ic ai"><svg viewBox="0 0 24 24"><path d="M3 8.5A2 2 0 0 1 5 6.5h1.6l1-1.6h4.8l1 1.6H19a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="12.5" r="3.3"/></svg></span>
+          <span class="opt-t"><b>Analizar con IA</b><small>Foto al plato o descríbelo con texto</small></span>
+        </button>
+        <button class="opt" onclick="openScanPanel()">
+          <span class="opt-ic scan"><svg viewBox="0 0 24 24"><path d="M4 5v14M7.5 5v14M10.5 5v14M13.5 5v14M16.5 5v11M20 5v14"/></svg></span>
+          <span class="opt-t"><b>Escanear envase</b><small>Código de barras del producto</small></span>
+        </button>
+        <button class="opt" onclick="openSearchPanel()">
+          <span class="opt-ic find"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/></svg></span>
+          <span class="opt-t"><b>Buscar alimento</b><small>Frutas, verduras, pavo, pan…</small></span>
+        </button>
+        <button class="opt" onclick="openPresetForm()">
+          <span class="opt-ic hand"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></span>
+          <span class="opt-t"><b>Nuevo plato a mano</b><small>Tú escribes los valores</small></span>
+        </button>
       </div>
     </section>
 
@@ -396,7 +396,7 @@ nav .tab-add .fab{transition:transform .15s,background .2s}
       <div class="card">
         <button class="link" style="display:block;margin:0 auto" onclick="exportData()">Exportar mis datos (copia de seguridad)</button>
         <button class="link" style="display:block;margin:12px auto 0" onclick="openOnboard()">Ver el tutorial otra vez</button>
-        <div style="text-align:center;color:var(--muted);font-size:11px;margin-top:14px;opacity:.7">NutriApp v10 · análisis IA foto/texto</div>
+        <div style="text-align:center;color:var(--muted);font-size:11px;margin-top:14px;opacity:.7">NutriApp v11 · fix nutrientes + porciones</div>
       </div>
     </section>
   </main>
@@ -453,6 +453,13 @@ nav .tab-add .fab{transition:transform .15s,background .2s}
       <label id="pkgLabel">Tamaño del envase</label>
       <input id="fPkg" type="number" inputmode="decimal" placeholder="opcional">
     </div>
+    <div id="portionWrap" style="display:none">
+      <label>Porción habitual (opcional) — así podrás añadir "1 rebanada"</label>
+      <div class="row-btns">
+        <input id="fPortionName" placeholder="rebanada, loncha, vaso…">
+        <input id="fPortionG" type="number" inputmode="decimal" placeholder="g" style="max-width:95px">
+      </div>
+    </div>
     <div class="grid2 mt">
       <div><label>Kcal</label><input id="fKcal" type="number" inputmode="numeric"></div>
       <div><label>Hidratos (g)</label><input id="fCarb" type="number" inputmode="decimal"></div>
@@ -478,6 +485,47 @@ nav .tab-add .fab{transition:transform .15s,background .2s}
   <div class="modal">
     <h3><span id="infoTitle">Nutriente</span><button class="x" onclick="closeModal('modalInfo')">✕</button></h3>
     <div id="infoBody"></div>
+  </div>
+</div>
+
+<!-- MODAL: entrada IA (foto / texto) -->
+<div class="modal-bg" id="modalAiIn">
+  <div class="modal">
+    <h3>Analizar con IA<button class="x" onclick="closeModal('modalAiIn')">✕</button></h3>
+    <p class="ai-hint">Haz una foto al plato o descríbelo; la IA estima los valores (aproximados).</p>
+    <input type="file" id="aiPhoto" accept="image/*" capture="environment" style="display:none" onchange="analyzeImage(this.files[0])">
+    <button class="btn" onclick="document.getElementById('aiPhoto').click()">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A2 2 0 0 1 5 6.5h1.6l1-1.6h4.8l1 1.6H19a2 2 0 0 1 2 2V17a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="12.5" r="3.3"/></svg>
+      Foto al plato</button>
+    <label style="margin-top:18px">…o descríbelo con texto</label>
+    <div class="row-btns">
+      <input id="aiText" placeholder="ej. 2 pechugas de pavo y un muslo de pollo">
+      <button class="btn small" onclick="analyzeText()">Analizar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: escáner -->
+<div class="modal-bg" id="modalScan">
+  <div class="modal">
+    <h3>Escanear envase<button class="x" onclick="closeScanPanel()">✕</button></h3>
+    <div id="reader"></div>
+    <p class="scan-hint" id="scanHint">Apunta al código de barras del producto</p>
+    <button class="btn sec" id="scanToggle" onclick="toggleScan()">▶ Iniciar cámara</button>
+    <label style="margin-top:18px">…o escribe el código a mano</label>
+    <div class="row-btns">
+      <input id="manualCode" inputmode="numeric" placeholder="ej. 8410000810004">
+      <button class="btn small" onclick="lookupManual()">Buscar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: buscar alimento -->
+<div class="modal-bg" id="modalSearch">
+  <div class="modal">
+    <h3>Buscar alimento<button class="x" onclick="closeModal('modalSearch')">✕</button></h3>
+    <input id="addSearch" placeholder="fruta, pavo, pan, yogur…" oninput="renderAddSearch()">
+    <div id="addSearchList" style="margin-top:10px"></div>
   </div>
 </div>
 
@@ -538,9 +586,11 @@ function go(v){
   document.getElementById('view-'+v).classList.add('active');
   document.querySelectorAll('nav .tab').forEach(t=>t.classList.toggle('active',t.dataset.v===v));
   if(v==='hoy')renderHoy();
-  if(v==='add'){document.getElementById('addSearch').value='';renderAddSearch();}
   if(v==='stats')renderStats();
 }
+function openScanPanel(){openModal('modalScan');}
+function closeScanPanel(){stopScan();closeModal('modalScan');}
+function openSearchPanel(){document.getElementById('addSearch').value='';renderAddSearch();openModal('modalSearch');}
 
 /* ---------- HOY ---------- */
 function todaysMeals(){return DB.log.filter(e=>e.date===today());}
@@ -715,10 +765,15 @@ function chooseQty(id){
   let html=mealSeg;
   if(qtyBase==='g'||qtyBase==='ml'){
     const u=qtyBase;
-    const btns=[`<button class="qbtn" onclick="setQty(100)">100 ${u}</button>`];
+    const btns=[];
+    if(p.portionG>0){
+      const pn=p.portionName||'ración';
+      for(const nP of [1,2,3]) btns.push(`<button class="qbtn port" onclick="setQtyPortion(${nP})">${nP} ${plur(pn,nP)}</button>`);
+    }
+    btns.push(`<button class="qbtn" onclick="setQty(100)">100 ${u}</button>`);
     if(p.pkg) btns.push(`<button class="qbtn" onclick="setQty(${p.pkg})">Envase entero (${r(p.pkg)} ${u})</button>`);
     html+=`<label>Cantidad (${u})</label>
-      <input id="qtyG" type="number" inputmode="decimal" value="100">
+      <input id="qtyG" type="number" inputmode="decimal" value="${p.portionG>0?r1(p.portionG):100}">
       <div class="qbtns">${btns.join('')}</div>`;
   } else if(qtyBase==='unit'){
     const nm=uname(p);
@@ -734,13 +789,23 @@ function chooseQty(id){
   body.innerHTML=`${html}
     <div id="qtyPreview" class="kcal-sub" style="margin-top:14px"></div>
     <button class="btn mt" onclick="confirmAdd('${id}')">Añadir a hoy</button>`;
+  qtyLabelOverride=(p.portionG>0&&(qtyBase==='g'||qtyBase==='ml'))
+    ? '1 '+(p.portionName||'ración')+' ('+r1(p.portionG)+' '+qtyBase+')' : null;
   const el=document.getElementById(qtyBase==='g'||qtyBase==='ml'?'qtyG':'qtyN');
-  setTimeout(()=>{el.oninput=updQty;updQty();},30);
+  setTimeout(()=>{el.oninput=()=>{qtyLabelOverride=null;updQty();};updQty();},30);
   openModal('modalAdd');
 }
-function setQty(v){const el=document.getElementById('qtyG')||document.getElementById('qtyN');if(el){el.value=v;updQty();}}
+let qtyLabelOverride=null;
+function setQty(v){qtyLabelOverride=null;const el=document.getElementById('qtyG')||document.getElementById('qtyN');if(el){el.value=v;updQty();}}
+function setQtyPortion(nP){
+  const p=qtyP,g=nP*(p.portionG||0),el=document.getElementById('qtyG');
+  if(!el)return;
+  el.value=r1(g);
+  qtyLabelOverride=nP+' '+plur(p.portionName||'ración',nP)+' ('+r1(g)+' '+qtyBase+')';
+  updQty();
+}
 function qtyFactor(){
-  if(qtyBase==='g'||qtyBase==='ml'){const a=+document.getElementById('qtyG').value||0;return {f:a/100,label:unitWord(qtyP,qtyBase,r1(a))};}
+  if(qtyBase==='g'||qtyBase==='ml'){const a=+document.getElementById('qtyG').value||0;return {f:a/100,label:qtyLabelOverride||unitWord(qtyP,qtyBase,r1(a))};}
   const n=+document.getElementById('qtyN').value||0;return {f:n,label:unitWord(qtyP,qtyBase,n)};
 }
 function updQty(){
@@ -785,6 +850,7 @@ function onUnitChange(){
   const u=document.getElementById('fUnit').value;
   const wrap=document.getElementById('pkgWrap'),lbl=document.getElementById('pkgLabel');
   document.getElementById('unitNameWrap').style.display=u==='unit'?'':'none';
+  document.getElementById('portionWrap').style.display=(u==='g'||u==='ml')?'':'none';
   if(u==='g'){wrap.style.display='';lbl.textContent='Tamaño del envase en g (opcional)';}
   else if(u==='ml'){wrap.style.display='';lbl.textContent='Tamaño del envase en ml (opcional)';}
   else if(u==='unit'){wrap.style.display='';lbl.textContent='Unidades por paquete (opcional)';}
@@ -798,6 +864,8 @@ function openPresetForm(id){
   document.getElementById('fUnit').value=p?(p.unit==='100g'?'g':p.unit):'serving';
   document.getElementById('fPkg').value=p&&p.pkg?p.pkg:'';
   document.getElementById('fUnitName').value=p&&p.unitName?p.unitName:'';
+  document.getElementById('fPortionName').value=p&&p.portionName?p.portionName:'';
+  document.getElementById('fPortionG').value=p&&p.portionG?p.portionG:'';
   onUnitChange();
   document.getElementById('fKcal').value=p?p.kcal:'';
   document.getElementById('fCarb').value=p?p.carb:'';
@@ -836,7 +904,11 @@ function savePreset(){
   const pkg=+document.getElementById('fPkg').value||0;
   const unit=document.getElementById('fUnit').value;
   const unitName=(document.getElementById('fUnitName').value||'').trim();
+  const portionG=+document.getElementById('fPortionG').value||0;
+  const portionName=(document.getElementById('fPortionName').value||'').trim();
   const data={name,emoji:selEmoji,unit,pkg:pkg||null,unitName:(unit==='unit'?(unitName||'unidad'):null),
+    portionG:((unit==='g'||unit==='ml')&&portionG)?portionG:null,
+    portionName:((unit==='g'||unit==='ml')&&portionG)?(portionName||'ración'):null,
     kcal:+document.getElementById('fKcal').value||0,carb:+document.getElementById('fCarb').value||0,
     prot:+document.getElementById('fProt').value||0,fat:+document.getElementById('fFat').value||0,
     fiber:+document.getElementById('fFib').value||0};
@@ -943,7 +1015,7 @@ let lastProduct=null,lastCode=null;
 async function lookup(code){
   toast('Analizando '+code+'…');
   try{
-    const fields='product_name,brands,nutriments,nutriscore_grade,nova_group,additives_tags,labels_tags,nutrient_levels,quantity,serving_size,product_quantity,product_quantity_unit,fiber_100g';
+    const fields='product_name,brands,nutriments,nutriscore_grade,nova_group,additives_tags,labels_tags,nutrient_levels,quantity,serving_size,product_quantity,product_quantity_unit';
     const res=await fetch(`https://world.openfoodfacts.org/api/v2/product/${code}.json?fields=${fields}`);
     const j=await res.json();
     if(j.status!==1||!j.product){toast('Producto no encontrado');return;}
@@ -967,6 +1039,28 @@ const ADDITIVE_NAME={
   e210:'Ácido benzoico',e211:'Benzoato sódico',e220:'Dióxido de azufre',e621:'Glutamato (MSG)',
   e951:'Aspartamo',e950:'Acesulfamo K',e952:'Ciclamato',e954:'Sacarina',e407:'Carragenanos',e471:'Mono/diglicéridos',
 };
+/* lectura tolerante de nutrientes de Open Food Facts */
+function nutVal(n,key){
+  if(!n)return 0;
+  for(const k of [key+'_100g',key+'_value',key]){
+    const v=n[k];
+    if(v!==undefined&&v!==null&&v!=='')return +v||0;
+  }
+  return 0;
+}
+function nutKcal(n){
+  if(!n)return 0;
+  for(const k of ['energy-kcal_100g','energy-kcal_value','energy-kcal']){
+    const v=n[k];
+    if(v!==undefined&&v!==null&&v!=='')return +v||0;
+  }
+  for(const k of ['energy-kj_100g','energy_100g','energy-kj_value','energy_value']){
+    const v=n[k];
+    if(v!==undefined&&v!==null&&v!=='')return Math.round((+v||0)/4.184);
+  }
+  return 0;
+}
+function hasNutrition(n){return nutKcal(n)>0||nutVal(n,'carbohydrates')>0||nutVal(n,'proteins')>0||nutVal(n,'fat')>0;}
 function novaLabel(n){return {1:'Sin procesar',2:'Poco procesado',3:'Procesado',4:'Ultraprocesado'}[n]||'—';}
 function riskLabel(r){return {alto:'Riesgo alto',moderado:'Riesgo moderado',limitado:'Riesgo limitado'}[r]||'';}
 function qualityScore(p){
@@ -1022,11 +1116,12 @@ function showProductResult(p,code){
     ${renderLevels(q.levels)}
     <h4 class="q-sub">Información nutricional</h4>
     <div class="q-nutri">
-      <div class="qn-tile kcal"><b>${r(n['energy-kcal_100g']||0)}</b><span>kcal</span></div>
-      <div class="qn-tile"><b>${r(n['carbohydrates_100g']||0)}g</b><span><i style="background:var(--carb)"></i>Hidratos</span></div>
-      <div class="qn-tile"><b>${r(n['proteins_100g']||0)}g</b><span><i style="background:var(--prot)"></i>Proteína</span></div>
-      <div class="qn-tile"><b>${r(n['fat_100g']||0)}g</b><span><i style="background:var(--fat)"></i>Grasas</span></div>
+      <div class="qn-tile kcal"><b>${r(nutKcal(n))}</b><span>kcal</span></div>
+      <div class="qn-tile"><b>${r(nutVal(n,'carbohydrates'))}g</b><span><i style="background:var(--carb)"></i>Hidratos</span></div>
+      <div class="qn-tile"><b>${r(nutVal(n,'proteins'))}g</b><span><i style="background:var(--prot)"></i>Proteína</span></div>
+      <div class="qn-tile"><b>${r(nutVal(n,'fat'))}g</b><span><i style="background:var(--fat)"></i>Grasas</span></div>
     </div>
+    ${hasNutrition(n)?'':'<div class="ob-note" style="margin-top:12px">⚠️ Open Food Facts <b>no tiene los valores nutricionales</b> de este producto. Al guardarlo, escríbelos tú desde la etiqueta.</div>'}
     <div class="q-per">valores por 100 ${/l$|ml|cl|litro/i.test(p.quantity||p.product_quantity_unit||'')?'ml':'g'}</div>
     <button class="btn mt" onclick="saveScannedProduct()">Guardar como plato</button>
     <div class="q-disc">Puntuación orientativa basada en Nutri-Score, nivel de procesado y aditivos (datos de Open Food Facts).</div>`;
@@ -1059,10 +1154,17 @@ function saveScannedProduct(){
   if(piece&&piece.grams>0){
     const f=piece.grams/100; // por pieza a partir de por 100g
     prefillFromProduct({name,unit:'unit',unitName:piece.name,pkg:pkg?Math.round(pkg/piece.grams):0,
-      kcal:(n['energy-kcal_100g']||0)*f,carb:(n['carbohydrates_100g']||0)*f,prot:(n['proteins_100g']||0)*f,fat:(n['fat_100g']||0)*f,fiber:(n['fiber_100g']||0)*f});
+      kcal:nutKcal(n)*f,carb:nutVal(n,'carbohydrates')*f,prot:nutVal(n,'proteins')*f,fat:nutVal(n,'fat')*f,fiber:nutVal(n,'fiber')*f});
     return;
   }
-  prefillFromProduct({name,unit:base,pkg,kcal:n['energy-kcal_100g']||0,carb:n['carbohydrates_100g']||0,prot:n['proteins_100g']||0,fat:n['fat_100g']||0,fiber:n['fiber_100g']||0});
+  // porción sugerida desde la ración de la etiqueta (ej. "30 g" -> 1 rebanada/loncha de 30 g)
+  const sg=servingGrams(p);
+  prefillFromProduct({name,unit:base,pkg,portionName:piece?piece.name:(sg?'ración':''),portionG:sg,
+    kcal:nutKcal(n),carb:nutVal(n,'carbohydrates'),prot:nutVal(n,'proteins'),fat:nutVal(n,'fat'),fiber:nutVal(n,'fiber')});
+}
+function servingGrams(p){
+  const m=String(p.serving_size||'').match(/([\d.,]+)\s*(g|ml)/i);
+  return m?Math.round(parseFloat(m[1].replace(',','.'))):0;
 }
 
 /* ---------- Fichas educativas de nutrientes ---------- */
@@ -1128,6 +1230,8 @@ function prefillFromProduct(d){
   document.getElementById('fUnit').value=d.unit||'g';
   document.getElementById('fPkg').value=d.pkg||'';
   document.getElementById('fUnitName').value=d.unitName||'';
+  document.getElementById('fPortionName').value=d.portionName||'';
+  document.getElementById('fPortionG').value=d.portionG||'';
   onUnitChange();
   document.getElementById('fKcal').value=r1(d.kcal);
   document.getElementById('fCarb').value=r1(d.carb);
@@ -1219,7 +1323,7 @@ function exportData(){
 /* ---------- Modal helpers ---------- */
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
-document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m){if(m.id==='modalScan')stopScan();m.classList.remove('open');}}));
 
 /* ---------- Onboarding ---------- */
 const OB_SVG={
